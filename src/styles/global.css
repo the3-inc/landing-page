@@ -2,18 +2,48 @@
 
 @theme {
 	--color-forest: #173f35;
-	--color-ink: #20382f;
-	--color-paper: #f6f5ef;
-	--color-lime: #d5e7a2;
+	--color-on-forest: #ffffff;
+	--color-ink: #202522;
+	--color-paper: #fafbf9;
+	--color-muted: #526058;
+	--color-line: #c7ceca;
+	--color-surface: #edf0ee;
+	--color-artwork: #173f35;
 	--font-sans:
 		"Helvetica Neue", Arial, "Hiragino Kaku Gothic ProN", "Noto Sans JP",
 		sans-serif;
 }
 
 @layer base {
+	:root {
+		color-scheme: light dark;
+	}
+	:root[data-theme="light"] {
+		color-scheme: light;
+	}
+	:root[data-theme="dark"] {
+		color-scheme: dark;
+		--color-forest: #acd8c2;
+		--color-on-forest: #12271e;
+		--color-ink: #edf2ef;
+		--color-paper: #121916;
+		--color-muted: #b2bfb7;
+		--color-line: #4d5c55;
+		--color-surface: #1b2420;
+	}
+	@media (prefers-color-scheme: dark) {
+		:root:not([data-theme="light"]) {
+			--color-forest: #acd8c2;
+			--color-on-forest: #12271e;
+			--color-ink: #edf2ef;
+			--color-paper: #121916;
+			--color-muted: #b2bfb7;
+			--color-line: #4d5c55;
+			--color-surface: #1b2420;
+		}
+	}
 	html {
 		scroll-behavior: smooth;
-		scroll-padding-top: 6rem;
 	}
 	body {
 		margin: 0;
@@ -21,10 +51,11 @@
 		color: var(--color-ink);
 	}
 	::selection {
-		background: var(--color-lime);
-		color: var(--color-forest);
+		background: var(--color-forest);
+		color: var(--color-on-forest);
 	}
-	a:focus-visible {
+	a:focus-visible,
+	select:focus-visible {
 		outline: 3px solid currentColor;
 		outline-offset: 6px;
 	}

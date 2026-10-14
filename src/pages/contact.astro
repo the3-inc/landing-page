@@ -1,0 +1,22 @@
+---
+// biome-ignore lint/correctness/noUnusedImports: Biome does not track component references in Astro templates.
+import SiteLayout from "../layouts/SiteLayout.astro";
+---
+
+<SiteLayout title="お問い合わせ | the3合同会社" description="IT・業務効率化のご相談は、the3合同会社へメールまたは電話でお問い合わせください。">
+	<section aria-labelledby="contact-title" class="mx-auto max-w-4xl px-6 py-16 md:px-12 md:py-20">
+		<p class="text-xs tracking-[0.18em] text-muted">CONTACT</p>
+		<h1 id="contact-title" class="mt-4 text-3xl font-bold md:text-4xl">お問い合わせ</h1>
+		<p class="mt-6 text-sm leading-8 text-muted md:text-base">IT・業務効率化について、お気軽にご相談ください。</p>
+		<div class="mt-10 border-t border-line">
+			<div class="grid gap-3 border-b border-line py-6 sm:grid-cols-[8rem_1fr]">
+				<h2 class="text-sm font-bold">メール</h2>
+				<a href="mailto:omitsuhashi@the3-o.com" class="w-fit break-all border-b border-forest pb-1 text-base font-bold hover:opacity-80">omitsuhashi@the3-o.com</a>
+			</div>
+			<div class="grid gap-3 border-b border-line py-6 sm:grid-cols-[8rem_1fr]">
+				<h2 class="text-sm font-bold">電話</h2>
+				<a href="tel:08067462024" class="w-fit border-b border-forest pb-1 text-base font-bold hover:opacity-80">080-6746-2024</a>
+			</div>
+		</div>
+	</section>
+</SiteLayout>
