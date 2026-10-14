@@ -1,0 +1,36 @@
+@import "tailwindcss";
+
+@theme {
+	--color-forest: #173f35;
+	--color-ink: #20382f;
+	--color-paper: #f6f5ef;
+	--color-lime: #d5e7a2;
+	--font-sans:
+		"Helvetica Neue", Arial, "Hiragino Kaku Gothic ProN", "Noto Sans JP",
+		sans-serif;
+}
+
+@layer base {
+	html {
+		scroll-behavior: smooth;
+		scroll-padding-top: 6rem;
+	}
+	body {
+		margin: 0;
+		background: var(--color-paper);
+		color: var(--color-ink);
+	}
+	::selection {
+		background: var(--color-lime);
+		color: var(--color-forest);
+	}
+	a:focus-visible {
+		outline: 3px solid currentColor;
+		outline-offset: 6px;
+	}
+	@media (prefers-reduced-motion: reduce) {
+		html {
+			scroll-behavior: auto;
+		}
+	}
+}
