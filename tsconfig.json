@@ -1,15 +1,10 @@
 {
+	"extends": "astro/tsconfigs/strict",
 	"compilerOptions": {
-		"target": "ESNext",
-		"lib": ["ESNext"],
-		"module": "NodeNext",
-		"types": ["node"],
-		"strict": true,
 		"noUncheckedIndexedAccess": true,
-		"noEmit": true,
 		"rewriteRelativeImportExtensions": true,
-		"erasableSyntaxOnly": true,
-		"verbatimModuleSyntax": true
+		"erasableSyntaxOnly": true
 	},
-	"include": ["src", "tests", "vitest.config.ts"]
+	"include": [".astro/types.d.ts", "**/*"],
+	"exclude": ["dist"]
 }

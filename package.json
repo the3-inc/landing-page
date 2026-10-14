@@ -8,16 +8,23 @@
 		"node": "24.x"
 	},
 	"scripts": {
+		"dev": "astro dev",
+		"build": "astro build",
+		"preview": "astro preview",
 		"check": "biome check .",
 		"fix": "biome check --write .",
-		"typecheck": "tsc --noEmit",
+		"typecheck": "astro check",
 		"test": "vitest run"
 	},
 	"devDependencies": {
+		"@astrojs/check": "0.9.10",
 		"@biomejs/biome": "2.5.15",
 		"@types/node": "24.19.2",
 		"lefthook": "2.2.2",
-		"typescript": "7.0.2",
+		"typescript": "6.0.3",
 		"vitest": "5.0.4"
+	},
+	"dependencies": {
+		"astro": "7.3.8"
 	}
 }
