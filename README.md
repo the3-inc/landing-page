@@ -46,4 +46,16 @@ compiled Tailwind styles, and the absence of client scripts.
 Astro is explicitly configured with `output: "static"`. No server adapter or
 frontend framework is needed for this initial page. Set `site` in
 `astro.config.mjs` when the company's production URL is decided.
-CI, AWS resources, DNS, and deployment are not configured yet.
+
+## CI and AWS deployment
+
+GitHub Actions checks pull requests and `main` with lint, tests, and a production
+build. Push an immutable `vMAJOR.MINOR.PATCH` tag from a commit on `main` to deploy
+to S3 + CloudFront through GitHub OIDC. The `production` Environment holds the
+deployment variables and approval settings. An existing release tag can also be
+deployed manually to roll back.
+
+See [AWS setup and release operations](infra/README.md) for the CloudFormation
+template, GitHub settings, resource tags, release commands, and recovery limits.
+AWS provisioning and GitHub protection settings must be completed before the
+first deployment. DNS and a custom domain are not included.
