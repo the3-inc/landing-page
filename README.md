@@ -1,6 +1,8 @@
 # landing-page
 
-Landing page for the3-inc.
+Company website for the3-inc, built with Astro and static site generation (SSG).
+Product websites and demos are deployed independently on subdomains and linked
+with ordinary links from this site. Add their URLs when the destinations are known.
 
 ## Development
 
@@ -10,16 +12,33 @@ Use Node.js 24.21.0 (recorded in `.node-version`) and pnpm 12.11.2
 ```sh
 pnpm install --frozen-lockfile
 pnpm exec lefthook install
+pnpm dev
+```
+
+The development server runs at `http://localhost:4321` by default.
+Edit `src/pages/index.astro` to update the homepage. Add pages under `src/pages/`
+and place assets that should be copied unchanged under `public/` when needed.
+
+## Validation and build
+
+```sh
 pnpm run check
 pnpm run typecheck
 pnpm test
+pnpm build
+pnpm preview
 ```
 
 `pnpm run fix` applies formatting and safe lint fixes. Review the diff and stage
 the changes again before committing. The pre-commit hook only checks staged files.
 
-The initial TypeScript and Vitest configuration targets Node.js. Add application
-code under `src/` and tests under `tests/`, importing test APIs from `vitest`.
-No application or tests exist yet: type checking currently covers the Vitest
-configuration, and `pnpm test` fails until tests are added.
-Frontend tooling, builds, CI, and deployment are not configured.
+`typecheck` uses `astro check` to cover Astro and TypeScript files. TypeScript 6
+is pinned because the installed `@astrojs/check` supports TypeScript 5 and 6.
+`build` checks types before generating static files in `dist/`; `preview` serves
+that build locally. The Vitest smoke test builds the homepage into a temporary
+directory and checks that the HTML is present without client scripts.
+
+Astro is explicitly configured with `output: "static"`. No server adapter or
+frontend framework is needed for this initial page. Set `site` in
+`astro.config.mjs` when the company's production URL is decided.
+CI, AWS resources, DNS, and deployment are not configured yet.
