@@ -1,0 +1,29 @@
+---
+// biome-ignore lint/correctness/noUnusedImports: Biome does not track component references in Astro templates.
+import SiteLayout from "../layouts/SiteLayout.astro";
+
+const address = "東京都新宿区西新宿3丁目3番13号 西新宿水間ビル6階";
+// biome-ignore lint/correctness/noUnusedVariables: Biome does not track references in Astro templates.
+const mapUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}`;
+---
+
+<SiteLayout title="会社案内 | the3合同会社" description="the3合同会社の会社情報・事業内容・所在地・アクセスをご案内します。">
+	<section id="company" aria-labelledby="company-title" class="mx-auto max-w-4xl px-6 py-16 md:px-12 md:py-20">
+		<div class="grid gap-10">
+			<div>
+				<p class="text-xs tracking-[0.18em] text-muted">COMPANY</p>
+				<h1 id="company-title" class="mt-4 text-3xl font-bold md:text-4xl">会社案内</h1>
+				<p class="mt-5 text-sm leading-7 text-muted">会社情報とアクセス</p>
+			</div>
+			<dl class="text-sm leading-7">
+				<div class="grid gap-2 border-b border-line py-5 sm:grid-cols-[8rem_1fr]"><dt class="font-bold">会社名</dt><dd>the3合同会社</dd></div>
+				<div class="grid gap-2 border-b border-line py-5 sm:grid-cols-[8rem_1fr]"><dt class="font-bold">事業内容</dt><dd>IT・業務効率化</dd></div>
+				<div id="access" class="grid gap-2 border-b border-line py-5 sm:grid-cols-[8rem_1fr]">
+					<dt class="font-bold">所在地</dt>
+					<dd>{address}<br /><a href={mapUrl} target="_blank" rel="noopener noreferrer" class="mt-3 inline-flex items-center gap-5 border-b border-forest pb-1 font-bold hover:opacity-80">Google マップで見る <span class="sr-only">（新しいタブで開きます）</span><span aria-hidden="true">↗</span></a></dd>
+				</div>
+				<div class="grid gap-2 border-b border-line py-5 sm:grid-cols-[8rem_1fr]"><dt class="font-bold">電話番号</dt><dd><a href="tel:08067462024" class="hover:underline underline-offset-4">080-6746-2024</a></dd></div>
+			</dl>
+		</div>
+	</section>
+</SiteLayout>

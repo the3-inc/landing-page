@@ -18,10 +18,20 @@ pnpm dev
 The development server runs at `http://localhost:4321` by default.
 Edit `src/pages/index.astro` to update the homepage. Add pages under `src/pages/`
 and place assets that should be copied unchanged under `public/` when needed.
-The homepage includes the company philosophy, access, basic information, and
-email contact links. Brand colors and base styles live in `src/styles/global.css`;
-Tailwind utilities are compiled through `@tailwindcss/vite` in `astro.config.mjs`.
-The layout adapts to mobile and desktop without client-side JavaScript.
+The site has three pages: `/` for the philosophy and business introduction,
+`/company/` for company information and access, and `/contact/` for email and
+phone contact. Philosophy copy appears only on the homepage. All pages use
+normal scrolling and content heights, with no full-screen sections or scroll
+snapping. The shared header, footer, metadata, and development theme selector
+live in `src/layouts/SiteLayout.astro`. Brand colors and base styles live in
+`src/styles/global.css`; Tailwind utilities are compiled through
+`@tailwindcss/vite` in `astro.config.mjs`.
+The layout adapts to mobile and desktop. In development (`pnpm dev`), the display
+selector offers light, dark, and system themes (the default), remembers an
+explicit choice in local storage, and follows system changes in system mode.
+The selector and its inline script are excluded from production builds and
+`pnpm preview`; production follows the system theme through CSS, with no client
+scripts or saved development preferences.
 
 ## Validation and build
 
@@ -39,9 +49,11 @@ the changes again before committing. The pre-commit hook only checks staged file
 `typecheck` uses `astro check` to cover Astro and TypeScript files. TypeScript 6
 is pinned because the installed `@astrojs/check` supports TypeScript 5 and 6.
 `build` checks types before generating static files in `dist/`; `preview` serves
-that build locally. The Vitest smoke test builds the homepage into a temporary
-directory and checks the company content, navigation, contact and map links,
-compiled Tailwind styles, and the absence of client scripts.
+that build locally. The Vitest smoke test builds all three pages into a temporary
+directory and checks the page content, shared navigation, unique homepage
+philosophy, contact and map links, compiled styles, and the absence of production
+client scripts and development controls. Theme tests cover system changes,
+saved choices, and unavailable storage.
 
 Astro is explicitly configured with `output: "static"`. No server adapter or
 frontend framework is needed for this initial page. Set `site` in
