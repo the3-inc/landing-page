@@ -1,31 +1,82 @@
+---
+import "../styles/global.css";
+
+const address = "東京都新宿区西新宿3丁目3番13号 西新宿水間ビル6階";
+// biome-ignore lint/correctness/noUnusedVariables: Biome does not track references in Astro templates.
+const mapUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}`;
+---
+
 <!doctype html>
 <html lang="ja">
 	<head>
 		<meta charset="UTF-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1" />
-		<meta name="description" content="the3-incの会社サイトです。" />
-		<title>the3-inc</title>
+		<meta name="description" content="the3合同会社は、ITと業務効率化を通じて、社会に一つでも多くいいものを提供します。企業理念、アクセス、会社情報をご案内します。" />
+		<meta name="theme-color" content="#173f35" />
+		<title>the3合同会社 | 社会に一つでも多くいいものを提供する</title>
 	</head>
-	<body>
-		<main>
-			<h1>the3-inc</h1>
-			<p>会社サイトを準備中です。</p>
+	<body class="font-sans antialiased">
+		<a href="#main" class="sr-only fixed top-4 left-4 z-50 bg-forest px-6 py-3 text-white focus:not-sr-only">本文へスキップ</a>
+		<header class="border-b border-forest/15">
+			<div class="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-4 px-6 py-6 md:px-12">
+				<a href="#" aria-label="the3合同会社 トップ" class="text-3xl font-black tracking-tighter">the3<span class="text-sm">.</span></a>
+				<nav aria-label="メインナビゲーション" class="flex items-center gap-5 text-xs font-bold sm:gap-8 sm:text-sm">
+					<a href="#philosophy" class="hover:underline underline-offset-8">企業理念</a>
+					<a href="#access" class="hover:underline underline-offset-8">アクセス</a>
+					<a href="#company" class="hover:underline underline-offset-8">会社情報</a>
+					<a href="mailto:omitsuhashi@the3-o.com" class="hidden rounded-full bg-forest px-5 py-3 text-white transition-colors hover:bg-ink sm:inline-flex">お問い合わせ <span aria-hidden="true" class="ml-4">↗</span></a>
+				</nav>
+			</div>
+		</header>
+		<main id="main">
+			<section aria-labelledby="hero-title" class="mx-auto grid max-w-7xl gap-12 px-6 pt-14 pb-12 lg:grid-cols-[1.2fr_1fr] lg:items-center md:px-12 md:pt-20 md:pb-16">
+				<div>
+					<p class="mb-8 flex items-center gap-3 text-xs font-bold tracking-[0.18em]"><span class="h-2 w-2 rounded-full bg-forest" aria-hidden="true"></span> SMALL STEPS. BETTER SOCIETY.</p>
+					<h1 id="hero-title" class="text-[clamp(1.45rem,7.2vw,2rem)] md:text-[clamp(2rem,4.6vw,4rem)] leading-[1.5] font-bold tracking-[-0.06em]">社会に一つでも多く<br />いいものを提供する<span class="text-forest">。</span></h1>
+					<p class="mt-7 max-w-lg text-sm leading-8 text-ink/80 md:text-base">ITと業務効率化を通じて、<br />よりよい仕事、よりよい社会へ。<br />the3合同会社は、この想いを出発点に取り組みます。</p>
+					<a href="#philosophy" class="mt-9 inline-flex items-center gap-10 border-b border-forest pb-3 text-sm font-bold">私たちの理念 <span aria-hidden="true">↓</span></a>
+				</div>
+				<div class="relative aspect-square overflow-hidden rounded-tl-[5rem] rounded-br-[5rem] bg-forest" aria-hidden="true">
+					<svg viewBox="0 0 500 500" class="h-full w-full" fill="none">
+						<defs><pattern id="grid" width="50" height="50" patternUnits="userSpaceOnUse"><path d="M 50 0 L 0 0 0 50" stroke="#ffffff" stroke-opacity=".07" /></pattern></defs>
+						<rect width="500" height="500" fill="url(#grid)" />
+						<path d="M -30 395 L 530 115" stroke="#d5e7a2" stroke-opacity=".35" />
+						<circle cx="195" cy="285" r="115" stroke="#d5e7a2" stroke-width="35" />
+						<circle cx="305" cy="285" r="115" stroke="#f6f5ef" stroke-width="35" />
+						<circle cx="250" cy="190" r="115" stroke="#88ac91" stroke-width="35" />
+						<path d="M 407 78 L 429 78 L 429 100 M 429 78 L 400 107" stroke="#d5e7a2" stroke-width="2" />
+					</svg>
+					<div class="absolute top-7 left-8 text-[10px] tracking-[0.25em] text-white/70">THE3 / A BETTER TOMORROW</div>
+					<div class="absolute bottom-7 left-8 text-xs text-white/70">小さな一歩を、社会の価値へ。</div>
+				</div>
+			</section>
+			<div class="mx-auto flex max-w-7xl items-center justify-between px-6 pb-12 text-[10px] tracking-[0.16em] text-ink/65 md:px-12"><span>IT & BUSINESS EFFICIENCY</span><span>SCROLL TO EXPLORE ↓</span></div>
+			<section id="philosophy" aria-labelledby="philosophy-title" class="border-y border-forest/15 bg-white/50">
+				<div class="mx-auto grid max-w-7xl gap-8 px-6 py-16 md:grid-cols-[1fr_2fr] md:px-12 md:py-24">
+					<div><p class="text-xs tracking-[0.18em] text-ink/65">01 / PHILOSOPHY</p><h2 id="philosophy-title" class="mt-4 text-2xl font-bold">企業理念</h2></div>
+					<div><p class="text-2xl leading-relaxed font-bold tracking-tight md:text-4xl md:leading-relaxed">社会に一つでも多く<br />いいものを提供する</p><div class="mt-8 h-1 w-12 bg-forest"></div><p class="mt-8 max-w-2xl text-sm leading-8 text-ink/80 md:text-base">私たちの事業の軸は、ITと業務効率化。<br class="hidden sm:block" />日々の仕事をよりよくすることから、社会に価値を届けていきます。</p><div class="mt-10 flex flex-wrap gap-3"><span class="rounded-full border border-forest/20 px-5 py-2 text-xs font-bold">IT</span><span class="rounded-full border border-forest/20 px-5 py-2 text-xs font-bold">業務効率化</span></div></div>
+				</div>
+			</section>
+			<section id="access" aria-labelledby="access-title" class="mx-auto grid max-w-7xl gap-8 px-6 py-16 md:grid-cols-[1fr_2fr] md:px-12 md:py-24">
+				<div><p class="text-xs tracking-[0.18em] text-ink/65">02 / ACCESS</p><h2 id="access-title" class="mt-4 text-2xl font-bold">アクセス</h2></div>
+				<div class="border-l-2 border-forest pl-6 md:pl-10"><p class="text-xs font-bold tracking-widest text-ink/65">TOKYO / NISHI-SHINJUKU</p><p class="mt-5 text-xl leading-relaxed font-bold md:text-2xl">東京都新宿区西新宿3丁目3番13号<br /><span class="text-base font-normal md:text-lg">西新宿水間ビル6階</span></p><a href={mapUrl} target="_blank" rel="noopener noreferrer" class="mt-7 inline-flex items-center gap-8 border-b border-forest pb-2 text-sm font-bold hover:text-forest/70">Google マップで見る <span class="sr-only">（新しいタブで開きます）</span><span aria-hidden="true">↗</span></a></div>
+			</section>
+			<section id="company" aria-labelledby="company-title" class="border-t border-forest/15">
+				<div class="mx-auto grid max-w-7xl gap-8 px-6 py-16 md:grid-cols-[1fr_2fr] md:px-12 md:py-24">
+					<div><p class="text-xs tracking-[0.18em] text-ink/65">03 / COMPANY</p><h2 id="company-title" class="mt-4 text-2xl font-bold">会社情報</h2></div>
+					<dl class="text-sm leading-7">
+						<div class="grid gap-2 border-b border-forest/15 py-5 sm:grid-cols-[9rem_1fr]"><dt class="font-bold">会社名</dt><dd>the3合同会社</dd></div>
+						<div class="grid gap-2 border-b border-forest/15 py-5 sm:grid-cols-[9rem_1fr]"><dt class="font-bold">事業内容</dt><dd>IT・業務効率化</dd></div>
+						<div class="grid gap-2 border-b border-forest/15 py-5 sm:grid-cols-[9rem_1fr]"><dt class="font-bold">所在地</dt><dd>{address}</dd></div>
+						<div class="grid gap-2 border-b border-forest/15 py-5 sm:grid-cols-[9rem_1fr]"><dt class="font-bold">電話番号</dt><dd><a href="tel:08067462024" class="hover:underline underline-offset-4">080-6746-2024</a></dd></div>
+						<div class="grid gap-2 border-b border-forest/15 py-5 sm:grid-cols-[9rem_1fr]"><dt class="font-bold">お問い合わせ</dt><dd><a href="mailto:omitsuhashi@the3-o.com" class="break-all hover:underline underline-offset-4">omitsuhashi@the3-o.com</a></dd></div>
+					</dl>
+				</div>
+			</section>
+			<section aria-labelledby="contact-title" class="bg-forest text-paper">
+				<div class="mx-auto flex max-w-7xl flex-col justify-between gap-8 px-6 py-14 md:flex-row md:items-center md:px-12 md:py-16"><div><p class="mb-4 text-xs tracking-[0.2em] text-lime">CONTACT</p><h2 id="contact-title" class="text-2xl font-bold md:text-3xl">お問い合わせ</h2><p class="mt-4 text-sm leading-7 text-paper/75">IT・業務効率化について、お気軽にご相談ください。</p></div><a href="mailto:omitsuhashi@the3-o.com" class="inline-flex items-center justify-between gap-10 rounded-full bg-lime px-7 py-5 text-sm font-bold text-forest transition-colors hover:bg-white">メールで相談する <span aria-hidden="true">↗</span></a></div>
+			</section>
 		</main>
+		<footer class="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-6 px-6 py-8 md:px-12"><p class="text-xl font-black tracking-tight">the3<span class="text-xs">.</span> <span class="ml-3 text-xs font-normal tracking-normal">the3合同会社</span></p><p class="text-[10px] tracking-wider text-ink/65">© {new Date().getFullYear()} the3合同会社</p></footer>
 	</body>
 </html>
-
-<style>
-	:global(body) {
-		margin: 0;
-		background: #fafafa;
-		color: #222;
-		font-family: system-ui, sans-serif;
-		line-height: 1.6;
-	}
-
-	main {
-		max-width: 60rem;
-		margin-inline: auto;
-		padding: 4rem 1.5rem;
-	}
-</style>
