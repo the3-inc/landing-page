@@ -82,7 +82,7 @@ test("builds three static pages with shared navigation and development-only them
 		);
 		expect(styles.join("")).toContain(".bg-forest");
 		expect(styles.join("")).toContain("--color-forest");
-		expect(styles.join("")).toContain("light-dark(");
+		expect(styles.join("")).not.toContain("light-dark(");
 		expect(styles.join("")).not.toContain("scroll-snap");
 		expect(styles.join("")).not.toContain("100svh");
 	} finally {
