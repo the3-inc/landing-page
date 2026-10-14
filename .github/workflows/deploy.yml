@@ -36,10 +36,10 @@ jobs:
           ref: main
           fetch-depth: 0
           persist-credentials: false
-      - uses: pnpm/action-setup@f40ffcd9367d9f12939873eb1018b921a783ffaa # v4
-      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+      - name: Set up Node for release verification
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
         with:
-          node-version-file: .node-version
+          node-version: '24'
       - name: Verify release and deployment configuration
         id: release
         run: |
@@ -51,6 +51,11 @@ jobs:
           sha=$(node scripts/verify-release.mjs "$RELEASE_TAG")
           echo "sha=$sha" >> "$GITHUB_OUTPUT"
           git checkout --detach "$sha"
+      - uses: pnpm/action-setup@f40ffcd9367d9f12939873eb1018b921a783ffaa # v4
+      - name: Set up Node for the release
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version-file: .node-version
       - run: pnpm install --frozen-lockfile
       - run: pnpm run check
       - run: pnpm test
