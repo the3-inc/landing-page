@@ -1,0 +1,90 @@
+name: Deploy production
+
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Existing release tag to deploy or roll back to (v1.2.3)'
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: production-deployment
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: production
+    permissions:
+      contents: read
+      id-token: write
+    env:
+      RELEASE_TAG: ${{ inputs.tag || github.ref_name }}
+      AWS_REGION: ${{ vars.AWS_REGION }}
+      SITE_BUCKET: ${{ vars.SITE_BUCKET }}
+      DISTRIBUTION_ID: ${{ vars.DISTRIBUTION_ID }}
+      AWS_ROLE_ARN: ${{ vars.AWS_ROLE_ARN }}
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          ref: main
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Set up Node for release verification
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version: '24'
+      - name: Verify release and deployment configuration
+        id: release
+        run: |
+          set -euo pipefail
+          : "${AWS_REGION:?Set production variable AWS_REGION}"
+          : "${SITE_BUCKET:?Set production variable SITE_BUCKET}"
+          : "${DISTRIBUTION_ID:?Set production variable DISTRIBUTION_ID}"
+          : "${AWS_ROLE_ARN:?Set production variable AWS_ROLE_ARN}"
+          sha=$(node scripts/verify-release.mjs "$RELEASE_TAG")
+          echo "sha=$sha" >> "$GITHUB_OUTPUT"
+          git checkout --detach "$sha"
+      - uses: pnpm/action-setup@f40ffcd9367d9f12939873eb1018b921a783ffaa # v4
+      - name: Set up Node for the release
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version-file: .node-version
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm run check
+      - run: pnpm test
+      - run: pnpm build
+      - uses: aws-actions/configure-aws-credentials@e1253824e5c10ff9df46874f81ed3ec929e19cfd # v6.3.0
+        with:
+          role-to-assume: ${{ env.AWS_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+          role-session-name: landing-page-${{ github.run_id }}
+      - name: Upload assets, then pages
+        run: |
+          set -euo pipefail
+          test -s dist/index.html
+          # Keep older hashed assets so cached HTML remains usable during updates.
+          if [ -d dist/_astro ]; then
+            aws s3 sync dist/_astro/ "s3://$SITE_BUCKET/_astro/" \
+              --cache-control 'public,max-age=31536000,immutable' --only-show-errors
+          fi
+          aws s3 sync dist/ "s3://$SITE_BUCKET/" --exclude '_astro/*' \
+            --cache-control 'public,max-age=60' --delete --only-show-errors
+      - name: Refresh CloudFront and record deployment
+        env:
+          RELEASE_SHA: ${{ steps.release.outputs.sha }}
+        run: |
+          set -euo pipefail
+          invalidation=$(aws cloudfront create-invalidation \
+            --distribution-id "$DISTRIBUTION_ID" --paths '/*' \
+            --query 'Invalidation.Id' --output text)
+          aws cloudfront wait invalidation-completed \
+            --distribution-id "$DISTRIBUTION_ID" --id "$invalidation"
+          printf 'Deployed %s (%s)\n\nCloudFront invalidation: %s\n' \
+            "$RELEASE_TAG" "$RELEASE_SHA" "$invalidation" >> "$GITHUB_STEP_SUMMARY"
