@@ -13,7 +13,7 @@ terraform {
 }
 
 provider "aws" {
-  region              = "us-east-1"
+  region              = "ap-northeast-1"
   allowed_account_ids = [var.aws_account_id]
   default_tags {
     tags = {

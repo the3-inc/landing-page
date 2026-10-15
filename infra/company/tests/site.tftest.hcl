@@ -4,7 +4,7 @@ mock_provider "aws" {
     defaults = {
       id                          = "the3-company-test"
       arn                         = "arn:aws:s3:::the3-company-test"
-      bucket_regional_domain_name = "the3-company-test.s3.us-east-1.amazonaws.com"
+      bucket_regional_domain_name = "the3-company-test.s3.ap-northeast-1.amazonaws.com"
     }
   }
   mock_resource "aws_cloudfront_distribution" {
@@ -48,6 +48,10 @@ variables {
 run "keeps_storage_private_and_limits_release_permissions" {
   command = plan
   assert {
+    condition     = output.aws_region == "ap-northeast-1" && aws_acm_certificate.site.region == "us-east-1" && aws_acm_certificate_validation.site.region == "us-east-1" && one(aws_cloudfront_distribution.site.origin).domain_name == "the3-company-test.s3.ap-northeast-1.amazonaws.com"
+    error_message = "Publish the Tokyo region and S3 origin, with CloudFront certificate issuance and validation in us-east-1."
+  }
+  assert {
     condition     = aws_s3_bucket_public_access_block.site.block_public_acls && aws_s3_bucket_public_access_block.site.block_public_policy && aws_s3_bucket_public_access_block.site.ignore_public_acls && aws_s3_bucket_public_access_block.site.restrict_public_buckets && !aws_s3_bucket.site.force_destroy
     error_message = "The company bucket must stay private and cannot force-delete its objects."
   }
@@ -60,11 +64,23 @@ run "keeps_storage_private_and_limits_release_permissions" {
     error_message = "Read access must be limited to the company distribution and TLS."
   }
   assert {
-    condition     = jsondecode(aws_iam_role.deploy.assume_role_policy).Statement[0].Condition.StringEquals["token.actions.githubusercontent.com:sub"] == "repo:the3-inc/landing-page:environment:production" && jsondecode(aws_iam_role.deploy.assume_role_policy).Statement[0].Condition.StringEquals["token.actions.githubusercontent.com:aud"] == "sts.amazonaws.com"
+    condition = jsondecode(aws_iam_role.deploy.assume_role_policy).Statement == [{
+      Effect    = "Allow"
+      Principal = { Federated = "arn:aws:iam::123456789012:oidc-provider/token.actions.githubusercontent.com" }
+      Action    = "sts:AssumeRoleWithWebIdentity"
+      Condition = { StringEquals = {
+        "token.actions.githubusercontent.com:sub" = "repo:the3-inc@249383711/landing-page@1418165190:environment:production"
+        "token.actions.githubusercontent.com:aud" = "sts.amazonaws.com"
+      } }
+    }]
     error_message = "The deploy role must trust only this repository's production Environment and AWS audience."
   }
   assert {
-    condition     = jsondecode(aws_iam_role_policy.deploy.policy).Statement[2].Resource == aws_cloudfront_distribution.site.arn && jsondecode(aws_iam_role_policy.deploy.policy).Statement[2].Action == ["cloudfront:CreateInvalidation", "cloudfront:GetInvalidation"] && jsondecode(aws_iam_role_policy.deploy.policy).Statement[1].Resource == "${aws_s3_bucket.site.arn}/*"
+    condition = jsondecode(aws_iam_role_policy.deploy.policy).Statement == [
+      { Effect = "Allow", Action = ["s3:ListBucket"], Resource = "arn:aws:s3:::the3-company-test" },
+      { Effect = "Allow", Action = ["s3:PutObject", "s3:DeleteObject", "s3:AbortMultipartUpload"], Resource = "arn:aws:s3:::the3-company-test/*" },
+      { Effect = "Allow", Action = ["cloudfront:CreateInvalidation", "cloudfront:GetInvalidation"], Resource = "arn:aws:cloudfront::123456789012:distribution/E123EXAMPLE" }
+    ]
     error_message = "Release credentials may update only the company bucket and invalidate its distribution."
   }
   assert {
