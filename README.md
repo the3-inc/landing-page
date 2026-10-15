@@ -56,18 +56,21 @@ client scripts and development controls. Theme tests cover system changes,
 saved choices, and unavailable storage.
 
 Astro is explicitly configured with `output: "static"`. No server adapter or
-frontend framework is needed for this initial page. Set `site` in
-`astro.config.mjs` when the company's production URL is decided.
+frontend framework is needed for this initial page. The production URL is `https://the3.co.jp`, configured as `site` in
+`astro.config.mjs`.
 
 ## CI and AWS deployment
 
 GitHub Actions checks pull requests and `main` with lint, tests, and a production
-build. Push an immutable `vMAJOR.MINOR.PATCH` tag from a commit on `main` to deploy
+build, and validates the CloudFormation template with `cfn-lint`.
+Push an immutable `vMAJOR.MINOR.PATCH` tag from a commit on `main` to deploy
 to S3 + CloudFront through GitHub OIDC. The `production` Environment holds the
 deployment variables and approval settings. An existing release tag can also be
 deployed manually to roll back.
 
 See [AWS setup and release operations](infra/README.md) for the CloudFormation
 template, GitHub settings, resource tags, release commands, and recovery limits.
-AWS provisioning and GitHub protection settings must be completed before the
-first deployment. DNS and a custom domain are not included.
+The CloudFormation stack provisions the certificate, DNS records in the existing
+Route 53 public hosted zone, and delivery resources in `us-east-1`. Complete the
+initial AWS provisioning and GitHub protection settings before pushing the first
+release tag. The deployment workflow verifies all three public page URLs.
