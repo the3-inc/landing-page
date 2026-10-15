@@ -1,19 +1,18 @@
-# Terraform による会社サイト・製品の管理
+# ローカル Terraform による AWS インフラ構築
 
-会社サイトと紹介ページは `the3.co.jp`、製品本体は `alpha.the3.co.jp` などの専用 CloudFront で配信します。
-AWS に未適用の状態から構築する Terraform 定義です。この変更では AWS 操作や実リソースの移管は行っていません。
+**インフラ構築担当が、ローカルなどの管理用端末から Terraform を実行し、AWS 基盤を構築・変更するための手順です。**
+会社サイトは `the3.co.jp`、製品本体は `alpha.the3.co.jp` などの専用 CloudFront で配信します。
+通常リージョンは `ap-northeast-1`、CloudFront 用 ACM 証明書と検証だけ `us-east-1` です。
+既存の `the3.co.jp` パブリック Hosted Zone を参照します。
 
-**この README は、ローカルの Terraform によるインフラ構築と、タグで起動するサイトデプロイの接続手順を説明します。**
-
-| 作業 | 担当・実行場所 | 実施すること |
+| 読むファイル | 担当する作業 | 操作する人・場所 |
 | --- | --- | --- |
-| AWS 基盤の構築・変更 | インフラ構築担当がローカルなどの管理用端末で Terraform を実行 | foundation → company の順に計画・適用し、配信基盤・認証・DNS を用意する |
-| 公開先の登録 | GitHub 設定担当が `production` Environment を設定 | Terraform output を5つの公開用変数へ登録し、許可 ref・承認・タグ保護を設定する |
-| サイトのデプロイ | リリース担当がタグを push し、GitHub Actions が実行 | 必要な承認後にビルド・S3 配置・CloudFront のキャッシュ無効化・公開確認を行う |
+| この README | AWS 認証・state 保存先・入力値の準備、Terraform の plan / apply、構築結果の取得 | インフラ構築担当・管理用端末 |
+| [サイトデプロイ手順](../docs/site-deployment.md) | GitHub の公開先・保護設定、タグ push、承認、公開確認、切り戻し | GitHub 設定担当・リリース担当・GitHub Actions |
 
-**基盤を用意する操作と、サイトのファイルを公開する操作は別です。** タグ workflow は Terraform apply を実行しません。
-初回は基盤構築と GitHub 設定を完了してからタグを push します。以降のサイト更新はタグで行い、
-インフラ構成の変更時には管理用端末から別途 Terraform を実行します。
+この手順では配信先と認証基盤を用意します。サイトのファイルは、基盤構築後に GitHub タグで起動する workflow が公開します。
+インフラ構成を変えるときは本書、通常のサイト更新ではサイトデプロイ手順を使います。
+以下は作業手順の説明です。ドキュメントの更新だけでは AWS や GitHub の設定は変わりません。
 
 ## はじめて構築するときに押さえること
 
@@ -48,11 +47,7 @@ state 用 S3 とサイトの HTML 用 S3 は用途が違います。state 用 S3
 | `backend.hcl`・`terraform.tfvars` の編集 | インフラ構築担当 | 構築端末のエディター | ローカルの4ファイルだけを変更する |
 | `init`・`plan`・`show` | インフラ構築担当 | 構築端末の Terraform。管理用認証 | 準備・計画確認。AWS リソースの作成・変更・削除はまだ行わない |
 | `apply` | インフラ構築担当 | 同じ構築端末の Terraform。管理用認証 | 保存した計画を AWS に反映する。foundation 完了後に company を適用する |
-| output の取得と GitHub 変数・保護設定の登録 | GitHub 設定担当 | output は構築端末。登録は GitHub Settings、または設定変更権限を持つ `gh` | GitHub の設定が変わる。AWS 基盤の output を正しく転記する |
-| リリースタグの作成・push | リリース担当 | 開発端末の Git。タグ作成を許可された GitHub アカウント | push で本番 workflow が起動する。対象コミットの main CI 成功を確認する |
-| production の承認 | 設定された承認者 | GitHub Actions の実行画面 | 承認待ちのジョブを開始する。required reviewers を設定した場合に必要 |
-| S3 配置・CloudFront 無効化・HTTP 確認 | GitHub Actions | GitHub の runner。OIDC でデプロイ専用ロールを引き受ける | 本番コンテンツを更新する。管理用の AWS 認証は渡さない |
-| 最終的な画面確認 | リリース担当 | ブラウザで `https://the3.co.jp` | 表示・リンクを確認する。HTTP 200 だけでは見た目を確認できない |
+| output の取得と引き渡し | インフラ構築担当 | 構築端末の Terraform。state を読む管理用認証 | 読み取り。構築結果を GitHub 設定担当へ渡す。以降はサイトデプロイ手順を使う |
 
 構築担当が使う AWS 管理用認証と、公開 workflow の `AWS_ROLE_ARN` は役割が違います。
 管理用認証はインフラを作るために事前に必要です。公開用ロールは company が必要な権限とともに作成し、
@@ -61,10 +56,8 @@ GitHub Actions はそのロールを使ってサイトのファイルとキャ�
 初回 company apply は DNS の向き先も変えます。**インフラ構築完了と、ページ公開完了は別です。**
 タグ push 後のデプロイが終わるまでサイトのファイルは配備されないため、構築・初回公開のタイミングを合わせてください。
 
-## タグデプロイに必要な設定
+## ローカルで設定する値
 
-初回は **ローカルの Terraform 入力 → AWS 基盤構築 → GitHub 設定 → タグ push → 承認・公開確認** の順に進めます。
-以下は今後の設定・実行手順です。このドキュメントの更新だけでは AWS や GitHub の設定は変更されません。
 対象の root は `infra/foundation` と `infra/company` です。設定ファイルは各ディレクトリの `.example` から作成します。
 
 | 設定先 | 設定するもの | 値・取得元 |
@@ -75,30 +68,10 @@ GitHub Actions はそのロールを使ってサイトのファイルとキャ�
 | 両 root の `backend.hcl` | `key` | foundation は `production/foundation/terraform.tfstate`、company は `production/company/terraform.tfstate` |
 | 両 root の `terraform.tfvars` | `aws_account_id` | 構築先 AWS アカウント ID。GitHub の `AWS_ACCOUNT_ID` と一致させる |
 | foundation の `terraform.tfvars` | `hosted_zone_id` | 既存 `the3.co.jp` パブリック Hosted Zone の ID。`/hostedzone/` は除く |
-| GitHub → Settings → Actions → General | GitHub Actions | `Deploy production` と参照する Actions を実行可能にする |
-| GitHub → Settings → Environments → `production` | Environment variables | company の apply 後、下の対応表にある5変数を登録 |
-| 同じ `production` Environment | Deployment branches and tags | Selected branches and tags で、**Branch: `main`** と **Tag: `v*`** を別々に許可 |
-| 同じ `production` Environment | Required reviewers | 必要な承認者。設定時はタグ push 後の実行を承認する |
-| GitHub → Settings → Rules → Rulesets | `main` と `v*` の保護 | main は PR と CI の `validate` チェックを必須化。`v*` は作成者を限定し、更新・削除を禁止 |
 
-GitHub の変数は **production の Environment variables** に設定します。workflow は `vars.*` を参照するため、Secrets への登録では代用できません。
-
-| GitHub 変数名 | company の output | 設定する値 |
-| --- | --- | --- |
-| `AWS_ACCOUNT_ID` | `aws_account_id` | 構築先アカウントの12桁 ID |
-| `AWS_REGION` | `aws_region` | `ap-northeast-1` |
-| `SITE_BUCKET` | `site_bucket` | 実際に作成・import した会社サイト用 S3 名。state 用 S3 とは別 |
-| `DISTRIBUTION_ID` | `distribution_id` | 会社用 CloudFront の ID。ドメイン名や ARN ではない |
-| `AWS_ROLE_ARN` | `deploy_role_arn` | Terraform が管理するデプロイ専用 IAM ロールの ARN |
-
-S3・CloudFront・証明書・デプロイロールは company が作成します。Distribution ID やロール ARN を事前に決める必要はありません。
-既存リソースを利用する場合は先に import し、state に取り込んだリソースの output を使います。
-公開 workflow は state を読まないため、output を GitHub 変数へ渡す必要があります。
-長期 AWS アクセスキーを GitHub に保存せず、foundation の OIDC provider と company のロールで認証します。
-
-以降の節に、backend の準備、root の入力、foundation → company の plan / apply、
-GitHub への変数一括登録、タグ push・完了確認の具体的な手順を記載しています。
-初回の company apply で DNS が向くため、初回デプロイ完了まではページを返せません。
+`terraform.tfvars` は Terraform が自動で読みます。`backend.hcl` は `init -backend-config=backend.hcl` で指定します。
+この方法では `TF_VAR_aws_account_id` などの環境変数は不要です。
+サイトのバケット名・Distribution ID・公開ロール ARN は構築後の output で取得するため、事前に入力する必要はありません。
 
 ## 管理境界
 
@@ -142,8 +115,23 @@ ID を含む Environment 信頼条件、会社だけの更新権限を検証し�
 
 ## 初回構築の準備
 
-以下のコマンドは今後の適用時に使用します。Terraform、AWS CLI v2、GitHub CLI、`jq` を用意し、
-Bash / Zsh で実行します。管理用の AWS 認証はコンテンツ公開用ロールと分けます。
+インフラ構築担当の端末に次を用意し、Bash / Zsh でリポジトリのルートから操作します。
+
+| 前提条件 | 用途・確認方法 |
+| --- | --- |
+| Terraform **1.16.6** | `terraform version` で確認。別バージョンではこのリポジトリの制約を満たさない |
+| AWS CLI v2 | `aws --version` で確認。AWS ログインと既存リソースの確認に使う |
+| Git とチェックアウト済みのリポジトリ | `infra/foundation` と `infra/company` のコード・lock ファイルを使う |
+| ネットワーク接続 | `init` 時の provider 取得と AWS API 接続に必要 |
+| 対象アカウントの管理用 AWS 認証 | インフラと state の管理に必要な権限。公開 workflow 用ロールとは別 |
+| 既存 Hosted Zone ID と state 用 S3 | ゾーンは既存 `the3.co.jp`。state 用 S3 は backend を使う最初の `init` より前に用意する |
+
+AWS provider **6.69.0** は `init` が取得するため、個別にインストールする必要はありません。
+`gh` と `jq` は、後続のサイトデプロイ手順で GitHub 変数を一括登録する場合に使います。
+Terraform のローカル実行自体には不要です。
+Terraform の導入は [公式手順](https://developer.hashicorp.com/terraform/tutorials/aws-get-started/install-cli)を参照し、指定バージョンを選んでください。
+
+管理用の AWS 認証はコンテンツ公開用ロールと分けます。
 どちらの root も通常のリージョンは `ap-northeast-1` です。会社 S3 と foundation の SSM は東京に作成します。
 CloudFront 用 ACM 証明書とその検証だけは AWS の要件により `us-east-1` です。
 固定済みの AWS provider v6 の resource `region` 引数で、この2リソースのリージョンを指定しています。
@@ -155,16 +143,22 @@ CloudFront・IAM・Route 53 はグローバルサービスです。
 プロファイルや AWS CLI がまだない場合は、対象アカウントへのログイン方法とツールの準備を先に完了します。
 `aws sts get-caller-identity` の `Account` が構築先であることを確認してから先へ進みます。
 
+AWS コンソールへのログインと、端末から使う AWS 認証は別途設定が必要です。
+管理用認証には S3・CloudFront・ACM・IAM・SSM・対象 DNS レコードの管理と、state の読み書きに必要な権限が必要です。
+IAM Identity Center を利用している環境なら、初回に `aws configure sso` でプロファイルを作り、
+以降は `aws sso login --profile your-infrastructure-profile` でログインします。
+SSO の開始 URL・リージョン・利用するアカウントとロールは、利用中の認証環境に合わせます。
+[認証設定の公式手順](https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-sso.html)を参照してください。
+
 ```sh
 export AWS_PROFILE=your-infrastructure-profile
 export AWS_REGION=ap-northeast-1
-export TF_VAR_aws_account_id=123456789012
 aws sts get-caller-identity
 aws route53 list-hosted-zones-by-name --dns-name the3.co.jp \
   --query 'HostedZones[?Name==`the3.co.jp.`].[Id,Config.PrivateZone]' --output table
 ```
 
-`TF_VAR_aws_account_id` は実際のアカウント ID に置き換えます。
+`aws_account_id` と backend の `allowed_account_ids` は、確認した実際のアカウント ID に合わせます。
 provider と backend の両方で想定アカウントを制限します。誤ったアカウントの状態で続行しないでください。
 Route 53 で管理している既存の `the3.co.jp` パブリックゾーンを使います。Hosted Zone は新規作成しません。
 コンソールで確認する場合は、**Route 53 → ホストゾーン → the3.co.jp → ホストゾーンの詳細** の ID を控えます。
@@ -263,12 +257,14 @@ backend を変更する際は state 移行を別途計画し、既存環境で�
 | コマンド | 意味 | AWS リソースへの反映 |
 | --- | --- | --- |
 | `init` | provider を取得し、state 保存先を初期設定する | リソースは作成・変更しない。既存 state の移行を求められた場合は保存先を再確認する |
+| `validate` | 設定の構文・整合性を検査する | AWS に接続せず、リソースも変更しない |
 | `plan -out=...` | 現在の AWS と設計図を比較し、実行計画をファイルに保存する | リソースは作成・変更しない。AWS の読み取りと state のロックを行う |
 | `show` | 保存した実行計画を表示する | リソースは変更しない |
 | `apply 計画ファイル` | 保存済みの計画を実行する | **AWS の作成・変更・削除を行う** |
 
 ```sh
 terraform -chdir=infra/foundation init -backend-config=backend.hcl -lockfile=readonly
+terraform -chdir=infra/foundation validate
 aws iam list-open-id-connect-providers
 ```
 
@@ -277,10 +273,11 @@ aws iam list-open-id-connect-providers
 
 ```sh
 terraform -chdir=infra/foundation import aws_iam_openid_connect_provider.github \
-  "arn:aws:iam::${TF_VAR_aws_account_id}:oidc-provider/token.actions.githubusercontent.com"
+  "arn:aws:iam::123456789012:oidc-provider/token.actions.githubusercontent.com"
 ```
 
-import は state を更新する操作です。所有者を確認した後に、既存リソースがある場合だけ実行します。
+import は state を更新する操作です。ARN の `123456789012` は構築先のアカウント ID に置き換えます。
+所有者を確認した後に、既存リソースがある場合だけ実行します。
 既存 provider に追加の audience / thumbprint がある場合、plan で意図せず消さないよう定義を合わせてから続行します。
 
 ```sh
@@ -370,6 +367,7 @@ Terraform は AWS 上のリソースを自動検索して採用しません。st
 
 ```sh
 terraform -chdir=infra/company init -backend-config=backend.hcl -lockfile=readonly
+terraform -chdir=infra/company validate
 terraform -chdir=infra/company plan -out=company.tfplan
 terraform -chdir=infra/company show company.tfplan
 ```
@@ -387,71 +385,17 @@ S3 は `prevent_destroy` と `force_destroy = false` で保護し、過去のオ
 ACM の検証 CNAME と apex の A / AAAA を同じ root で作成します。
 **初回 apply で DNS が向きますが、初回タグのデプロイ完了まではページを返せません。**
 
-## GitHub の公開設定
+## 構築結果をサイトデプロイへ渡す
 
-company の構築後、インフラ構築担当が構築端末で次を実行して、作成結果を確認します。この操作は読み取りです。
+company の apply 完了後、インフラ構築担当が同じ管理用端末で次を実行します。state を読むだけの操作です。
 
 ```sh
 terraform -chdir=infra/company output
 ```
 
-表示された実際のバケット名・CloudFront ID・ロール ARN などを GitHub 設定担当へ渡します。
-同じ人が担当する場合も、ここから先は GitHub 設定を変更する操作です。
-ブラウザでは Settings → Environments → production → Environment variables に登録します。
-以下の一括登録コマンドを使う場合は、Terraform output を読める構築端末で、GitHub 設定変更権限を持つ `gh` 認証を使います。
-
-初回だけ `production` Environment を用意します。既存 Environment では承認・許可 ref 設定を保持します。
-company の apply 後、出力から変数を登録します。`gh` はリポジトリ設定を変更できるアカウントで認証します。
-`DISTRIBUTION_ID` は `distribution_id` output の CloudFront ID、`AWS_ROLE_ARN` は `deploy_role_arn` output の
-デプロイ専用ロール ARN です。ロールと必要な権限は company が作成するため、手作業でロールを用意する必要はありません。
-Terraform が実 ID を state で管理し、以下のコマンドで公開 workflow へ渡します。
-workflow は state を読む権限を持たないため、この変数登録が必要です。ID を別ファイルで管理する必要はありません。
-`SITE_BUCKET` も作成・import 後の output を使い、仮のバケット名を残さないでください。
-
-```sh
-(
-  set -euo pipefail
-  outputs=$(terraform -chdir=infra/company output -json)
-  for pair in AWS_ACCOUNT_ID:aws_account_id AWS_REGION:aws_region SITE_BUCKET:site_bucket DISTRIBUTION_ID:distribution_id AWS_ROLE_ARN:deploy_role_arn; do
-    key=${pair%%:*}
-    output=${pair#*:}
-    value=$(printf '%s' "$outputs" | jq -er --arg key "$output" '.[$key].value')
-    gh variable set "$key" --repo the3-inc/landing-page --env production --body "$value"
-  done
-)
-```
-
-公開ロールの権限は company の `aws_iam_role_policy.deploy` に定義しています。
-
-| 対象 | 許可する操作 | 用途 |
-| --- | --- | --- |
-| 会社 S3 バケットのみ | `s3:ListBucket` | sync の差分確認 |
-| 会社 S3 のオブジェクトのみ | `s3:PutObject`, `s3:DeleteObject` | アップロードと不要ファイルの削除 |
-| 会社 S3 のオブジェクトのみ | `s3:AbortMultipartUpload` | 大きなファイルのアップロード失敗時の後片付け |
-| 会社 CloudFront Distribution のみ | `cloudfront:CreateInvalidation`, `cloudfront:GetInvalidation` | キャッシュ無効化と完了待ち |
-
-Terraform state、SSM、IAM・DNS・証明書・CloudFront 設定の管理権限は付与しません。
-workflow は AWS_ACCOUNT_ID によって別アカウントへの接続も拒否します。
-
-公開前に GitHub 保護を設定します。Terraform は GitHub の Ruleset / Environment を作成しません。
-
-- `main` Ruleset: PR と CI の `validate` ステータスチェックを必須にする。
-- `v*` タグ Ruleset: 更新・削除を禁止し、作成者をリリース担当者に限定する。
-- `production` の Deployment branches and tags: `main` ブランチと `v*` タグのみ許可する。
-- 必要な承認者を required reviewers に設定する。利用プランによる制限は実際の画面で確認する。
-
-会社ロールは foundation の GitHub OIDC provider と audience `sts.amazonaws.com` を信頼し、subject は次の完全一致です。
-
-```text
-repo:the3-inc@249383711/landing-page@1418165190:environment:production
-```
-
-これは GitHub が返す ID を含む `sub_claim_prefix` に Environment を加えた値です。
-`gh api repos/the3-inc/landing-page/actions/oidc/customization/sub` で確認できます。
-リポジトリの移管・改名や subject 設定変更時は IAM 信頼条件とテストも合わせて更新します。
-Environment の OIDC subject に ref は含まれません。許可 ref とタグ権限も AWS 認証の保護に含まれます。
-インフラ用の GitHub 自動 apply workflow は作りません。plan / show / 明示的な apply は管理用認証で行い、
-タグ workflow は既存のリソースへコンテンツを公開するだけです。
+AWS アカウント ID・リージョン・サイト用バケット名・CloudFront ID・デプロイ専用ロール ARN を GitHub 設定担当へ渡します。
+Terraform は実 ID を state で管理します。既存リソースを import した場合も、そのリソースの情報が output に出ます。
+GitHub への変数登録・タグ push・承認・公開確認は、[サイトデプロイ手順](../docs/site-deployment.md)に従います。
 
 ## CloudFormation 適用済み環境を移管する場合
 
@@ -470,84 +414,6 @@ Environment の OIDC subject に ref は含まれません。許可 ref とタ�
 
 同じリソースを両方の管理下に置きません。CloudFormation の削除と Terraform の新規作成で置き換える方式は採りません。
 実 ID が未確認のため、今回の変更には自動移管スクリプトや固定 import block を含めていません。
-
-## リリースタグとデプロイ
-
-タグは `vMAJOR.MINOR.PATCH`（例: `v1.0.0`）に統一します。
-PATCH は修正、MINOR は機能・コンテンツの追加、MAJOR は互換性や公開 URL の変更に使います。
-先頭ゼロ・プレリリースタグは受け付けません。`package.json` は非公開アプリのため
-バージョンを連動させません。公開バージョンの基準は Git タグです。
-
-PR をマージし、`main` の CI 成功後に実行します。
-
-```sh
-git fetch origin main --tags
-git log -1 --oneline origin/main
-git tag --list 'v*' --sort=-version:refname
-# 上記コミットの CI 成功と、タグ名が未使用であることを確認してから実行
-git tag -a v1.0.0 origin/main -m 'Release v1.0.0'
-git push origin refs/tags/v1.0.0
-```
-
-タグの例は未使用の場合だけ使い、既存タグがあれば次のバージョンを選びます。
-Terraform・workflow の変更も含めて `main` にマージしてからリリースします。
-タグは取得した `origin/main` に付けるため、ローカルの未コミット変更や未 push のコミットは含まれません。
-ローカルでのタグ作成だけでは起動しません。GitHub Release の作成は不要です。
-
-タグの push で `Deploy production` が起動します。タグ形式と `origin/main` に含まれる
-コミットであることを確認し、lint・テスト・ビルド成功後に AWS を更新します。
-production に required reviewers を設定した場合は、Actions の実行画面で承認してからジョブが開始します。
-GitHub Actions の `GITHUB_TOKEN` で作ったタグでは通常別ワークフローが起動しないため、
-この手順はリリース担当者がローカルから実行してください。
-
-ハッシュ付き `_astro/` アセットを先に配置し、次にページを同期します。
-以前の `_astro/` は保持し、それ以外の不要ファイルは削除します。
-会社用 Distribution の全パス（将来の紹介ページも含む）を無効化し、完了を待った後、公開 URL の `/`・`/company/`・`/contact/` が
-HTTPS で HTTP 200 を返すことを確認します。すべて成功した後に、実行サマリーにタグ・コミット・無効化 ID を記録します。
-タグ push 後は次のコマンド、または GitHub の Actions 画面で完了を確認します。
-
-```sh
-gh run list --repo the3-inc/landing-page --workflow deploy.yml
-gh run watch RUN_ID --repo the3-inc/landing-page --exit-status
-```
-
-承認待ちの操作は Actions 画面で行います。HTTP 検証は表示内容や CSS の見た目まで保証しないため、公開 URL をブラウザでも確認してください。
-初回デプロイ前の URL はまだコンテンツを返しません。
-
-## 切り戻し・失敗時
-
-Actions → Deploy production → Run workflow で **Branch: main** を選び、
-`tag` に以前のタグ（例: `v1.0.0`）を指定します。同じチェックと承認を経て再デプロイします。
-タグを移動・再作成せず、新規修正には次のバージョンを使います。
-同時デプロイは直列に実行します。ただし GitHub の concurrency は待機中の実行を
-置き換えることがあるため、全タグの順番通りの公開は保証しません。
-
-切り戻し時もタグのコードを frozen lockfile で再ビルドします。以前のビルド成果物を
-保管・復元する方式ではなく、外部ビルド入力まで含めた同一バイトの復元は保証しません。
-S3 の更新はファイル単位で、サイト全体の切り替えは原子的ではありません。
-アップロード途中で失敗した場合は同じタグを手動再実行するか、以前のタグへ切り戻します。
-無効化に失敗した場合はアップロードだけ完了している可能性があるため、実行ログと実際の URL を確認します。
-
-## /products 配下に紹介ページを追加する
-
-例として、製品本体が `https://alpha.the3.co.jp` にある場合の紹介ページを追加します。
-製品名・紹介内容・公開 URL が決まってから作成し、未公開 URL へのリンクは公開しません。
-
-1. このリポジトリに `src/pages/products/alpha.astro` を作成し、既存の `SiteLayout.astro` を使う。
-   一覧が必要になったら `src/pages/products/index.astro` も追加する。
-2. 製品の説明と `https://alpha.the3.co.jp` への通常のリンクを置く。
-   アプリのコードやログイン画面は会社 S3 に配置しない。
-3. 既存ナビゲーションや製品一覧から紹介ページへリンクし、必要な画像はこの会社サイトで管理する。
-   会社 Astro の `site` は `https://the3.co.jp` のまま、`base` も変更しない。
-4. `tests/site.test.ts` のビルド確認を更新し、紹介内容・製品リンク・共通レイアウトを確認する。
-   `.github/workflows/deploy.yml` の公開 URL 確認にも `/products/alpha/` を追加する。
-   一覧ページを作った場合は `/products/` も追加し、README のページ数も更新する。
-5. lint・テスト・ビルドを通し、PR をマージして会社サイトの新しいリリースタグを push する。
-
-既存のディレクトリ用 Function が `/products/alpha/` を `/products/alpha/index.html` に書き換えます。
-通常の Astro ページ追加だけで配信でき、会社の Origin / Behavior、DNS、証明書の追加は不要です。
-会社 workflow は会社用 Distribution の `/*` を無効化するため、新しい紹介ページも対象です。
-これは製品サブドメインのキャッシュには影響しません。
 
 ## 製品本体をサブドメインで公開する
 

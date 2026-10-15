@@ -13,7 +13,12 @@ Astro と Tailwind CSS 4 で構築した、the3合同会社の会社サイトで
 
 初回準備後のサイト更新は **main へマージ → CI 成功 → タグ push → 必要な承認 → デプロイ** です。
 インフラ構成を変える場合は別途 Terraform を実行します。タグ workflow は Terraform apply を行いません。
-初回準備は [インフラ README](infra/README.md)、公開操作は [タグで本番デプロイするまで](#タグで本番デプロイするまで)を参照してください。
+詳細手順はファイルごとに分けています。
+
+| 読むファイル | 対象 |
+| --- | --- |
+| [ローカル Terraform によるインフラ構築](infra/README.md) | ツール・AWS 認証・入力値・state 用 S3 の準備、plan / apply、構築結果の取得 |
+| [GitHub タグによるサイトデプロイ](docs/site-deployment.md) | GitHub の公開設定、起動条件、タグ push、承認、公開確認、切り戻し |
 
 現在のページは、理念・事業紹介の `/`、会社情報・アクセスの `/company/`、
 メール・電話の問い合わせ先を掲載した `/contact/` の3つです。
@@ -90,59 +95,9 @@ Route 53 の既存 `the3.co.jp` パブリック Hosted Zone を参照します�
 両 root は暗号化・ロック付き S3 backend の別々の key で state を管理します。
 製品リポジトリは SSM の公開契約だけを読み、製品専用の state とリソースを管理します。
 
-## タグで本番デプロイするまで
+## 構築・デプロイの進め方
 
-**初回に AWS 基盤と GitHub の設定を完了し、その後の公開をタグ push で開始します。**
-タグ workflow は既存リソースへの公開だけを行い、Terraform apply は実行しません。
-
-1. [必要な設定の一覧](infra/README.md#タグデプロイに必要な設定)に従い、管理用 AWS 認証、
-   両 root の `backend.hcl`・`terraform.tfvars` を設定します。アカウント ID と既存 Hosted Zone ID を使います。
-2. 管理用認証で foundation → company の順に plan を確認し、明示的に apply します。
-   S3・CloudFront・証明書・公開ロールは Terraform が作成します。既存リソースを使う場合は先に import します。
-3. [GitHub の公開設定](infra/README.md#github-の公開設定)に従い、
-   Settings → Environments → **production → Environment variables** に company outputs から次の5変数を登録します。
-   `AWS_ACCOUNT_ID`、`AWS_REGION`、`SITE_BUCKET`、`DISTRIBUTION_ID`、`AWS_ROLE_ARN`。
-   README 内の登録コマンドでまとめて転記できます。長期 AWS アクセスキーは使いません。
-4. GitHub Actions を有効にし、`main` の PR・CI 必須化、`v*` タグの作成制限と更新・削除禁止、
-   production の許可 ref（ブランチ `main` とタグ `v*`）・必要な承認者を設定します。
-   承認者を設定した場合は、タグ push 後の実行を承認します。
-5. Terraform・workflow・公開対象コードを含む変更を PR で `main` にマージし、対象コミットの CI 成功を確認してからタグを push します。
-
-`DISTRIBUTION_ID` と `AWS_ROLE_ARN` は Terraform state で管理するリソースの output です。
-ID やロールを手作業で作る必要はありません。公開 workflow は state を読む権限を持たないため、GitHub Variables へ値を渡します。
-初回 company apply で DNS が向き、初回デプロイ完了まではページを返せません。
-
-### タグの作成と push
-
-以下は実際に本番デプロイを開始する操作です。`v1.0.0` は未使用のバージョンに置き換えてください。
-ローカルの未コミット変更や未 push のコミットではなく、取得した `origin/main` のコミットにタグを付けます。
-
-```sh
-git fetch origin main --tags
-git log -1 --oneline origin/main
-git tag --list 'v*' --sort=-version:refname
-# 上記コミットの CI 成功と、タグ名が未使用であることを確認してから実行
-git tag -a v1.0.0 origin/main -m 'Release v1.0.0'
-git push origin refs/tags/v1.0.0
-```
-
-タグは `vMAJOR.MINOR.PATCH` に統一します。先頭ゼロ・プレリリース形式は受け付けません。
-`package.json` のバージョン更新と GitHub Release の作成は不要です。ローカルでのタグ作成だけでは起動せず、push が必要です。
-
-### 完了確認と切り戻し
-
-Actions の **Deploy production** を確認し、production の承認待ちであれば承認します。
-workflow はタグの検証 → lint・テスト・ビルド → S3 配置 → CloudFront 無効化・完了待ち →
-公開3ページの HTTP 200 確認を行います。成功時の実行サマリーにはタグ・コミット・無効化 ID が残ります。
-
-```sh
-gh run list --repo the3-inc/landing-page --workflow deploy.yml
-gh run watch RUN_ID --repo the3-inc/landing-page --exit-status
-```
-
-成功後は [公開サイト](https://the3.co.jp)をブラウザでも確認します。
-切り戻しは Actions → Deploy production → Run workflow で **Branch: main** を選び、
-`tag` に以前のタグを指定します。既存タグの移動・再作成はしません。
-
-backend の準備、適用・移管手順、ロールの権限、失敗時の制約、製品の追加は [インフラ README](infra/README.md) を参照してください。
-製品紹介ページを追加するときは、コンテンツテストと workflow の公開 URL 検証も更新します。
+初回は [インフラ構築手順](infra/README.md)で AWS 基盤を用意し、構築結果を GitHub 設定担当へ渡します。
+続いて [サイトデプロイ手順](docs/site-deployment.md)で `production` の5変数と保護設定を登録し、タグを push します。
+通常のサイト更新は main へマージ → CI 成功 → タグ push → 必要な承認 → 公開確認です。
+インフラ構成の変更は、管理用端末から別途 Terraform を実行します。
