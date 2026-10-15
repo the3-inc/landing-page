@@ -3,6 +3,45 @@
 会社サイトと紹介ページは `the3.co.jp`、製品本体は `alpha.the3.co.jp` などの専用 CloudFront で配信します。
 AWS に未適用の状態から構築する Terraform 定義です。この変更では AWS 操作や実リソースの移管は行っていません。
 
+## タグデプロイに必要な設定
+
+初回は **ローカルの Terraform 入力 → AWS 基盤構築 → GitHub 設定 → タグ push → 承認・公開確認** の順に進めます。
+以下は今後の設定・実行手順です。このドキュメントの更新だけでは AWS や GitHub の設定は変更されません。
+対象の root は `infra/foundation` と `infra/company` です。設定ファイルは各ディレクトリの `.example` から作成します。
+
+| 設定先 | 設定するもの | 値・取得元 |
+| --- | --- | --- |
+| インフラ構築端末 | `AWS_PROFILE` | 対象アカウントのインフラ管理用認証。backend と foundation / company の作成・更新権限が必要。公開用ロールとは別 |
+| インフラ構築端末 | `AWS_REGION` | `ap-northeast-1`。Terraform の通常 provider も同リージョンに固定済み |
+| 両 root の `backend.hcl` | `bucket`, `region`, `allowed_account_ids` | 用意した state 用 S3 名、その実リージョン、構築先 AWS アカウント ID。新規 backend の例は東京 |
+| 両 root の `backend.hcl` | `key` | foundation は `production/foundation/terraform.tfstate`、company は `production/company/terraform.tfstate` |
+| 両 root の `terraform.tfvars` | `aws_account_id` | 構築先 AWS アカウント ID。GitHub の `AWS_ACCOUNT_ID` と一致させる |
+| foundation の `terraform.tfvars` | `hosted_zone_id` | 既存 `the3.co.jp` パブリック Hosted Zone の ID。`/hostedzone/` は除く |
+| GitHub → Settings → Actions → General | GitHub Actions | `Deploy production` と参照する Actions を実行可能にする |
+| GitHub → Settings → Environments → `production` | Environment variables | company の apply 後、下の対応表にある5変数を登録 |
+| 同じ `production` Environment | Deployment branches and tags | Selected branches and tags で、**Branch: `main`** と **Tag: `v*`** を別々に許可 |
+| 同じ `production` Environment | Required reviewers | 必要な承認者。設定時はタグ push 後の実行を承認する |
+| GitHub → Settings → Rules → Rulesets | `main` と `v*` の保護 | main は PR と CI の `validate` チェックを必須化。`v*` は作成者を限定し、更新・削除を禁止 |
+
+GitHub の変数は **production の Environment variables** に設定します。workflow は `vars.*` を参照するため、Secrets への登録では代用できません。
+
+| GitHub 変数名 | company の output | 設定する値 |
+| --- | --- | --- |
+| `AWS_ACCOUNT_ID` | `aws_account_id` | 構築先アカウントの12桁 ID |
+| `AWS_REGION` | `aws_region` | `ap-northeast-1` |
+| `SITE_BUCKET` | `site_bucket` | 実際に作成・import した会社サイト用 S3 名。state 用 S3 とは別 |
+| `DISTRIBUTION_ID` | `distribution_id` | 会社用 CloudFront の ID。ドメイン名や ARN ではない |
+| `AWS_ROLE_ARN` | `deploy_role_arn` | Terraform が管理するデプロイ専用 IAM ロールの ARN |
+
+S3・CloudFront・証明書・デプロイロールは company が作成します。Distribution ID やロール ARN を事前に決める必要はありません。
+既存リソースを利用する場合は先に import し、state に取り込んだリソースの output を使います。
+公開 workflow は state を読まないため、output を GitHub 変数へ渡す必要があります。
+長期 AWS アクセスキーを GitHub に保存せず、foundation の OIDC provider と company のロールで認証します。
+
+以降の節に、backend の準備、root の入力、foundation → company の plan / apply、
+GitHub への変数一括登録、タグ push・完了確認の具体的な手順を記載しています。
+初回の company apply で DNS が向くため、初回デプロイ完了まではページを返せません。
+
 ## 管理境界
 
 | root | 所有するもの | backend key |
@@ -267,7 +306,7 @@ workflow は AWS_ACCOUNT_ID によって別アカウントへの接続も拒否�
 
 公開前に GitHub 保護を設定します。Terraform は GitHub の Ruleset / Environment を作成しません。
 
-- `main` Ruleset: PR と `CI / validate` の実際のステータスチェックを必須にする。
+- `main` Ruleset: PR と CI の `validate` ステータスチェックを必須にする。
 - `v*` タグ Ruleset: 更新・削除を禁止し、作成者をリリース担当者に限定する。
 - `production` の Deployment branches and tags: `main` ブランチと `v*` タグのみ許可する。
 - 必要な承認者を required reviewers に設定する。利用プランによる制限は実際の画面で確認する。
@@ -314,16 +353,21 @@ PR をマージし、`main` の CI 成功後に実行します。
 
 ```sh
 git fetch origin main --tags
-git switch main
-git pull --ff-only origin main
-git tag -a v1.0.0 -m 'Release v1.0.0'
+git log -1 --oneline origin/main
+git tag --list 'v*' --sort=-version:refname
+# 上記コミットの CI 成功と、タグ名が未使用であることを確認してから実行
+git tag -a v1.0.0 origin/main -m 'Release v1.0.0'
 git push origin refs/tags/v1.0.0
 ```
 
 タグの例は未使用の場合だけ使い、既存タグがあれば次のバージョンを選びます。
+Terraform・workflow の変更も含めて `main` にマージしてからリリースします。
+タグは取得した `origin/main` に付けるため、ローカルの未コミット変更や未 push のコミットは含まれません。
+ローカルでのタグ作成だけでは起動しません。GitHub Release の作成は不要です。
 
 タグの push で `Deploy production` が起動します。タグ形式と `origin/main` に含まれる
 コミットであることを確認し、lint・テスト・ビルド成功後に AWS を更新します。
+production に required reviewers を設定した場合は、Actions の実行画面で承認してからジョブが開始します。
 GitHub Actions の `GITHUB_TOKEN` で作ったタグでは通常別ワークフローが起動しないため、
 この手順はリリース担当者がローカルから実行してください。
 
@@ -331,8 +375,14 @@ GitHub Actions の `GITHUB_TOKEN` で作ったタグでは通常別ワークフ�
 以前の `_astro/` は保持し、それ以外の不要ファイルは削除します。
 会社用 Distribution の全パス（将来の紹介ページも含む）を無効化し、完了を待った後、公開 URL の `/`・`/company/`・`/contact/` が
 HTTPS で HTTP 200 を返すことを確認します。すべて成功した後に、実行サマリーにタグ・コミット・無効化 ID を記録します。
-タグ push 後は `gh run list --workflow deploy.yml` で実行を探し、`gh run watch RUN_ID --exit-status`
-で完了を確認できます。HTTP 検証は表示内容や CSS の見た目まで保証しないため、公開 URL をブラウザでも確認してください。
+タグ push 後は次のコマンド、または GitHub の Actions 画面で完了を確認します。
+
+```sh
+gh run list --repo the3-inc/landing-page --workflow deploy.yml
+gh run watch RUN_ID --repo the3-inc/landing-page --exit-status
+```
+
+承認待ちの操作は Actions 画面で行います。HTTP 検証は表示内容や CSS の見た目まで保証しないため、公開 URL をブラウザでも確認してください。
 初回デプロイ前の URL はまだコンテンツを返しません。
 
 ## 切り戻し・失敗時
