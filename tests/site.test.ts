@@ -6,7 +6,7 @@ import { fileURLToPath } from "node:url";
 import { promisify } from "node:util";
 import { expect, test } from "vitest";
 
-test("builds three static pages with shared navigation and development-only theme controls", async () => {
+test("builds company and product pages with shared navigation and development-only theme controls", async () => {
 	const outDir = await mkdtemp(join(tmpdir(), "landing-page-test-"));
 	try {
 		const buildEnv = { ...process.env };
@@ -34,7 +34,7 @@ test("builds three static pages with shared navigation and development-only them
 				readFile(join(outDir, file), "utf8"),
 			),
 		);
-		const paths = ["/", "/company/", "/contact/"];
+		const paths = ["/", "/company/", "/contact/", "/products/"];
 		for (const [index, html] of pages.entries()) {
 			expect(html).toContain('lang="ja"');
 			expect(html.match(/<h1\b/g)).toHaveLength(1);
@@ -74,6 +74,28 @@ test("builds three static pages with shared navigation and development-only them
 		expect(contact).toContain('href="mailto:omitsuhashi@the3-o.com"');
 		expect(contact).toContain('href="tel:08067462024"');
 		expect(contact).not.toContain('id="access"');
+		const productIndex = await readFile(
+			join(outDir, "products/index.html"),
+			"utf8",
+		);
+		const product = await readFile(
+			join(outDir, "products/schedula/index.html"),
+			"utf8",
+		);
+		expect(productIndex).toContain('href="/products/schedula/"');
+		for (const [html, current] of [
+			[productIndex, "page"],
+			[product, "location"],
+		]) {
+			const link = html?.match(/<a\b[^>]*href="\/products\/"[^>]*>/)?.[0];
+			expect(link).toContain(`aria-current="${current}"`);
+			expect(link).toContain(`aria-[current=${current}]:underline`);
+		}
+		expect(product).toContain("シフト作成を、自社の業務に。");
+		expect(product).toContain(
+			'rel="canonical" href="https://the3.co.jp/products/schedula/"',
+		);
+		expect(product).not.toContain("<script");
 		const assets = await readdir(join(outDir, "_astro"));
 		const styles = await Promise.all(
 			assets
@@ -85,6 +107,9 @@ test("builds three static pages with shared navigation and development-only them
 		expect(styles.join("")).not.toContain("light-dark(");
 		expect(styles.join("")).not.toContain("scroll-snap");
 		expect(styles.join("")).not.toContain("100svh");
+		for (const id of ["demand", "consecutive_days", "verify"])
+			expect(product).toContain(`href="/products/schedula/demo/#${id}"`);
+		expect(product).toContain('href="/products/schedula/docs/"');
 	} finally {
 		await rm(outDir, { recursive: true, force: true });
 	}

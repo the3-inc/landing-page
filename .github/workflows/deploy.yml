@@ -93,7 +93,7 @@ jobs:
       - name: Verify public pages
         run: |
           set -euo pipefail
-          for path in / /company/ /contact/; do
+          for path in / /company/ /contact/ /products/ /products/schedula/; do
             status=$(curl --fail --silent --show-error --output /dev/null \
               --write-out '%{http_code}' \
               --retry 5 --retry-all-errors --retry-delay 10 --max-time 30 \
@@ -107,4 +107,4 @@ jobs:
         run: |
           printf 'Deployed %s (%s)\n\nCloudFront invalidation: %s\n' \
             "$RELEASE_TAG" "$RELEASE_SHA" "$INVALIDATION_ID" >> "$GITHUB_STEP_SUMMARY"
-          printf '\nVerified https://the3.co.jp/ and both subpages\n' >> "$GITHUB_STEP_SUMMARY"
+          printf '\nVerified company and product pages\n' >> "$GITHUB_STEP_SUMMARY"

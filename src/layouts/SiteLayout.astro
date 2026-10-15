@@ -53,6 +53,7 @@ const currentPage = Astro.url.pathname.replace(/\/$/, "");
 				});
 			</script>
 		)}
+		<link rel="canonical" href={new URL(Astro.url.pathname, Astro.site)} />
 		<title>{title}</title>
 	</head>
 	<body class="font-sans antialiased">
@@ -71,8 +72,9 @@ const currentPage = Astro.url.pathname.replace(/\/$/, "");
 							</select>
 						</label>
 					)}
-					<nav aria-label="メインナビゲーション" class="flex items-center gap-3 text-xs font-bold whitespace-nowrap sm:gap-8 sm:text-sm">
+					<nav aria-label="メインナビゲーション" class="flex flex-wrap items-center gap-3 text-xs font-bold whitespace-nowrap sm:gap-8 sm:text-sm">
 						<a href="/" aria-current={currentPage === "" ? "page" : undefined} class="hover:underline aria-[current=page]:underline underline-offset-8">トップ</a>
+						<a href="/products/" aria-current={currentPage === "/products" ? "page" : currentPage.startsWith("/products/") ? "location" : undefined} class="hover:underline aria-[current=page]:underline aria-[current=location]:underline underline-offset-8">製品</a>
 						<a href="/company/" aria-current={currentPage === "/company" ? "page" : undefined} class="hover:underline aria-[current=page]:underline underline-offset-8">会社案内</a>
 						<a href="/contact/" aria-current={currentPage === "/contact" ? "page" : undefined} class="rounded-full bg-forest px-3 py-2 text-on-forest sm:px-5 sm:py-3 transition-opacity hover:opacity-80 inline-flex">お問い合わせ <span aria-hidden="true" class="ml-4">↗</span></a>
 					</nav>
