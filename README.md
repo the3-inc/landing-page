@@ -1,8 +1,10 @@
 # landing-page
 
 Company website for the3合同会社, built with Astro, Tailwind CSS 4, and static site generation (SSG).
-Product websites and demos are deployed independently on subdomains and linked
-with ordinary links from this site. Add their URLs when the destinations are known.
+Product introductions will live under `/products/<name>/` in this company site.
+Product applications and demos will run on their own subdomains, such as
+`alpha.the3.co.jp`, with a dedicated CloudFront distribution, S3 or Lambda origin,
+and release workflow per product. Introduction pages link to those applications.
 
 ## Development
 
@@ -56,18 +58,36 @@ client scripts and development controls. Theme tests cover system changes,
 saved choices, and unavailable storage.
 
 Astro is explicitly configured with `output: "static"`. No server adapter or
-frontend framework is needed for this initial page. Set `site` in
-`astro.config.mjs` when the company's production URL is decided.
+frontend framework is needed for this initial page. The production URL is `https://the3.co.jp`, configured as `site` in
+`astro.config.mjs`.
 
-## CI and AWS deployment
+## CI, Terraform and AWS deployment
 
-GitHub Actions checks pull requests and `main` with lint, tests, and a production
-build. Push an immutable `vMAJOR.MINOR.PATCH` tag from a commit on `main` to deploy
-to S3 + CloudFront through GitHub OIDC. The `production` Environment holds the
-deployment variables and approval settings. An existing release tag can also be
-deployed manually to roll back.
+GitHub Actions checks pull requests and `main` with lint, tests, a production build,
+and Terraform fmt/validate/provider-mock tests without AWS credentials.
+Terraform CLI 1.16.6 and AWS provider 6.69.0 are pinned; commit each root's provider
+lock file. `infra/foundation` owns account-wide GitHub OIDC and publishes three
+non-secret identifiers to versioned SSM parameters. `infra/company` reads that
+contract and owns the company S3, CloudFront, certificate, DNS records and release
+role in one independent state. Product repositories read the same SSM contract
+and own separate state, product resources and release workflows.
 
-See [AWS setup and release operations](infra/README.md) for the CloudFormation
-template, GitHub settings, resource tags, release commands, and recovery limits.
-AWS provisioning and GitHub protection settings must be completed before the
-first deployment. DNS and a custom domain are not included.
+See [infrastructure setup and operations](infra/README.md) for offline checks,
+backend bootstrap, reviewed plan/apply commands, existing-resource migration,
+SSM consumer examples, GitHub settings, product onboarding and recovery limits.
+The existing Route 53 zone is referenced, not recreated. The two roots use separate
+S3 backend keys with encryption and locking. Infrastructure changes use administrative
+credentials and explicit plan/apply; release workflows have no infrastructure
+management or state access.
+
+After infrastructure and GitHub protection settings are complete, push an immutable
+`vMAJOR.MINOR.PATCH` tag from a commit on `main`. The production workflow builds and
+uploads the company site, invalidates only its distribution, then verifies the three
+existing public pages. Set `AWS_ACCOUNT_ID`, `AWS_REGION`, `SITE_BUCKET`,
+`DISTRIBUTION_ID` and `AWS_ROLE_ARN` from company Terraform outputs in the `production`
+Environment. Existing release tags can be redeployed manually from `main` to roll back.
+No Terraform apply is triggered by release tags.
+
+Product introduction pages are not created yet. When adding `/products/` pages,
+extend the content tests and public URL checks. Product applications use their own
+subdomains, certificates, CloudFront distributions, origins and release roles.

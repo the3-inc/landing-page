@@ -30,6 +30,7 @@ jobs:
       SITE_BUCKET: ${{ vars.SITE_BUCKET }}
       DISTRIBUTION_ID: ${{ vars.DISTRIBUTION_ID }}
       AWS_ROLE_ARN: ${{ vars.AWS_ROLE_ARN }}
+      AWS_ACCOUNT_ID: ${{ vars.AWS_ACCOUNT_ID }}
     steps:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
         with:
@@ -48,6 +49,7 @@ jobs:
           : "${SITE_BUCKET:?Set production variable SITE_BUCKET}"
           : "${DISTRIBUTION_ID:?Set production variable DISTRIBUTION_ID}"
           : "${AWS_ROLE_ARN:?Set production variable AWS_ROLE_ARN}"
+          : "${AWS_ACCOUNT_ID:?Set production variable AWS_ACCOUNT_ID}"
           sha=$(node scripts/verify-release.mjs "$RELEASE_TAG")
           echo "sha=$sha" >> "$GITHUB_OUTPUT"
           git checkout --detach "$sha"
@@ -64,6 +66,7 @@ jobs:
         with:
           role-to-assume: ${{ env.AWS_ROLE_ARN }}
           aws-region: ${{ env.AWS_REGION }}
+          allowed-account-ids: ${{ env.AWS_ACCOUNT_ID }}
           role-session-name: landing-page-${{ github.run_id }}
       - name: Upload assets, then pages
         run: |
@@ -76,15 +79,32 @@ jobs:
           fi
           aws s3 sync dist/ "s3://$SITE_BUCKET/" --exclude '_astro/*' \
             --cache-control 'public,max-age=60' --delete --only-show-errors
-      - name: Refresh CloudFront and record deployment
-        env:
-          RELEASE_SHA: ${{ steps.release.outputs.sha }}
+      - name: Refresh CloudFront
+        id: refresh
         run: |
           set -euo pipefail
           invalidation=$(aws cloudfront create-invalidation \
-            --distribution-id "$DISTRIBUTION_ID" --paths '/*' \
+            --distribution-id "$DISTRIBUTION_ID" \
+            --paths '/*' \
             --query 'Invalidation.Id' --output text)
           aws cloudfront wait invalidation-completed \
             --distribution-id "$DISTRIBUTION_ID" --id "$invalidation"
+          echo "invalidation=$invalidation" >> "$GITHUB_OUTPUT"
+      - name: Verify public pages
+        run: |
+          set -euo pipefail
+          for path in / /company/ /contact/; do
+            status=$(curl --fail --silent --show-error --output /dev/null \
+              --write-out '%{http_code}' \
+              --retry 5 --retry-all-errors --retry-delay 10 --max-time 30 \
+              "https://the3.co.jp$path")
+            test "$status" = 200
+          done
+      - name: Record successful release
+        env:
+          RELEASE_SHA: ${{ steps.release.outputs.sha }}
+          INVALIDATION_ID: ${{ steps.refresh.outputs.invalidation }}
+        run: |
           printf 'Deployed %s (%s)\n\nCloudFront invalidation: %s\n' \
-            "$RELEASE_TAG" "$RELEASE_SHA" "$invalidation" >> "$GITHUB_STEP_SUMMARY"
+            "$RELEASE_TAG" "$RELEASE_SHA" "$INVALIDATION_ID" >> "$GITHUB_STEP_SUMMARY"
+          printf '\nVerified https://the3.co.jp/ and both subpages\n' >> "$GITHUB_STEP_SUMMARY"
