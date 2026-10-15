@@ -71,6 +71,9 @@ non-secret identifiers to versioned SSM parameters. `infra/company` reads that
 contract and owns the company S3, CloudFront, certificate, DNS records and release
 role in one independent state. Product repositories read the same SSM contract
 and own separate state, product resources and release workflows.
+Both roots use `ap-northeast-1` for regional resources. Only the CloudFront ACM
+certificate and its validation use `us-east-1`; the existing `the3.co.jp` Route 53
+public hosted zone is reused.
 
 See [infrastructure setup and operations](infra/README.md) for offline checks,
 backend bootstrap, reviewed plan/apply commands, existing-resource migration,

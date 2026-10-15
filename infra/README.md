@@ -39,21 +39,24 @@ pnpm test
 pnpm build
 ```
 
-CI の `validate` job も同じ検証を行います。PR と main の CI は plan / apply や AWS 認証を行いません。
-mock テストは契約値、誤ったアカウント・OIDC・ゾーンの拒否、非公開 S3、TLS、Environment 信頼、
-会社だけの更新権限を検証します。実 AWS の権限・DNS 委任・API の成功を証明するものではありません。
+CI の `validate` job も同じ検証を行います。PR と main の CI は実 AWS に対する plan / apply や AWS 認証を行いません。
+mock テストは契約値、誤ったアカウント・OIDC・ゾーンの拒否、非公開 S3、TLS、証明書のリージョン分離、
+ID を含む Environment 信頼条件、会社だけの更新権限を検証します。実 AWS の権限・DNS 委任・API の成功を証明するものではありません。
 
 ## 初回構築の準備
 
 以下のコマンドは今後の適用時に使用します。Terraform、AWS CLI v2、GitHub CLI、`jq` を用意し、
 Bash / Zsh で実行します。管理用の AWS 認証はコンテンツ公開用ロールと分けます。
-どちらの root も `us-east-1` を使い、会社の S3 と CloudFront 用 ACM を同リージョンに作成します。
+どちらの root も通常のリージョンは `ap-northeast-1` です。会社 S3 と foundation の SSM は東京に作成します。
+CloudFront 用 ACM 証明書とその検証だけは AWS の要件により `us-east-1` です。
+固定済みの AWS provider v6 の resource `region` 引数で、この2リソースのリージョンを指定しています。
+CloudFront・IAM・Route 53 はグローバルサービスです。
 
 ### アカウントと DNS の確認
 
 ```sh
 export AWS_PROFILE=your-infrastructure-profile
-export AWS_REGION=us-east-1
+export AWS_REGION=ap-northeast-1
 export TF_VAR_aws_account_id=123456789012
 aws sts get-caller-identity
 aws route53 list-hosted-zones-by-name --dns-name the3.co.jp \
@@ -62,7 +65,8 @@ aws route53 list-hosted-zones-by-name --dns-name the3.co.jp \
 
 `TF_VAR_aws_account_id` は実際のアカウント ID に置き換えます。
 provider と backend の両方で想定アカウントを制限します。誤ったアカウントの状態で続行しないでください。
-同じアカウントのパブリックゾーンを選び、ドメインの NS がそのゾーンに委任されていることを確認します。
+Route 53 で管理している既存の `the3.co.jp` パブリックゾーンを使います。Hosted Zone は新規作成しません。
+同じアカウントのゾーン ID を指定し、ドメインの NS がそのゾーンに委任されていることを確認します。
 foundation はゾーン名と公開 / 非公開を確認しますが、外部の NS 委任は検証しません。
 
 ```sh
@@ -84,7 +88,8 @@ backend 自体は各 root の管理対象に含めません。既存の暗号化
 
 ```sh
 export THE3_STATE_BUCKET=replace-with-globally-unique-state-bucket
-aws s3api create-bucket --bucket "$THE3_STATE_BUCKET" --region us-east-1
+aws s3api create-bucket --bucket "$THE3_STATE_BUCKET" --region ap-northeast-1 \
+  --create-bucket-configuration LocationConstraint=ap-northeast-1
 aws s3api put-public-access-block --bucket "$THE3_STATE_BUCKET" \
   --public-access-block-configuration BlockPublicAcls=true,IgnorePublicAcls=true,BlockPublicPolicy=true,RestrictPublicBuckets=true
 aws s3api put-bucket-versioning --bucket "$THE3_STATE_BUCKET" \
@@ -110,6 +115,7 @@ cp infra/company/terraform.tfvars.example infra/company/terraform.tfvars
 ```
 
 `backend.hcl` の bucket・allowed_account_ids と、tfvars の aws_account_id を実値に変更します。
+backend の region は state バケットの実際のリージョンに合わせます。新規作成の例は `ap-northeast-1` です。
 foundation の hosted_zone_id も `/hostedzone/` を除いた実値にします。2つの backend key は別のままにします。
 ローカル設定・state・plan は Git ignore 対象です。認証情報を HCL やコマンド引数に保存せず AWS_PROFILE 等を使います。
 backend を変更する際は state 移行を別途計画し、既存環境で空の key へ安易に切り替えないでください。
@@ -144,7 +150,7 @@ OIDC と SSM 契約は `prevent_destroy` で保護します。これは完全な
 
 ## SSM の公開契約と製品からの参照
 
-すべて **us-east-1 / String 型 / バージョン付きパス**で公開します。秘密情報は入れません。
+すべて **ap-northeast-1 / String 型 / バージョン付きパス**で公開します。秘密情報は入れません。
 
 | Parameter Store の名前 | 値 |
 | --- | --- |
@@ -153,7 +159,7 @@ OIDC と SSM 契約は `prevent_destroy` で保護します。これは完全な
 | `/the3/production/foundation/v1/github-oidc-provider-arn` | foundation が所有する GitHub OIDC ARN |
 
 会社と各製品の IaC 実行主体には、この3パラメーターの `ssm:GetParameter` だけを許可します。
-例えば同アカウントならリソース ARN は `arn:aws:ssm:us-east-1:ACCOUNT_ID:parameter/the3/production/foundation/v1/*` です。
+例えば同アカウントならリソース ARN は `arn:aws:ssm:ap-northeast-1:ACCOUNT_ID:parameter/the3/production/foundation/v1/*` です。
 これは参照の許可だけで、OIDC による AssumeRole や Route 53 の変更権限は別の IAM 設定です。
 公開契約を変更するのは foundation の管理者だけです。既存 v1 の意味を変更せず、破壊的変更は v2 を公開して移行します。
 会社の bucket / Distribution ID / ロールはこの契約には公開しません。
@@ -164,7 +170,7 @@ OIDC と SSM 契約は `prevent_destroy` で保護します。これは完全な
 ```hcl
 provider "aws" {
   alias               = "foundation"
-  region              = "us-east-1"
+  region              = "ap-northeast-1"
   allowed_account_ids = [var.aws_account_id]
 }
 
@@ -193,13 +199,22 @@ locals {
 
 製品側では `local.foundation["hosted-zone-id"]` を自身の DNS / 証明書検証に使い、
 `local.foundation["github-oidc-provider-arn"]` を自身のデプロイロールの信頼ポリシーに使います。
-OIDC の subject は `repo:ORGANIZATION/PRODUCT_REPOSITORY:environment:production` のように製品へ限定し、
+OIDC の subject は製品ごとに `gh api repos/ORGANIZATION/PRODUCT_REPOSITORY/actions/oidc/customization/sub`
+の `sub_claim_prefix` を確認し、`:environment:production` を付けた完全一致条件にします。
+ID を含む形式では `repo:ORGANIZATION@OWNER_ID/PRODUCT_REPOSITORY@REPO_ID:environment:production` です。
 audience は `sts.amazonaws.com` を要求します。会社・他製品の subject は許可しません。
 会社の state / CloudFront / ロールにはアクセスしません。製品の backend key と lock 権限も自製品に限定します。
 
 ## company の plan / apply
 
 foundation の適用後に実行します。3つの SSM 値が存在しなければ plan が失敗します。
+
+新規構築では company が S3・CloudFront・証明書・デプロイロールを作成し、実 ID は state に記録します。
+既存 CloudFront を使う場合は、対象ドメイン・Origin・証明書と所有者を確認します。company の backend を init し、定義を実物に合わせてから
+`terraform -chdir=infra/company import aws_cloudfront_distribution.site EXISTING_DISTRIBUTION_ID` で取り込みます。
+関連リソースも同様に取り込み、意図しない変更・削除・置換がない plan を確認します。
+Terraform は AWS 上のリソースを自動検索して採用しません。state に管理されていなければ新規作成を計画するため、
+既存リソースの import は plan / apply より先に行います。他の state や CloudFormation が管理中なら先に所有権を移管します。
 
 ```sh
 terraform -chdir=infra/company init -backend-config=backend.hcl -lockfile=readonly
@@ -219,6 +234,11 @@ ACM の検証 CNAME と apex の A / AAAA を同じ root で作成します。
 
 初回だけ `production` Environment を用意します。既存 Environment では承認・許可 ref 設定を保持します。
 company の apply 後、出力から変数を登録します。`gh` はリポジトリ設定を変更できるアカウントで認証します。
+`DISTRIBUTION_ID` は `distribution_id` output の CloudFront ID、`AWS_ROLE_ARN` は `deploy_role_arn` output の
+デプロイ専用ロール ARN です。ロールと必要な権限は company が作成するため、手作業でロールを用意する必要はありません。
+Terraform が実 ID を state で管理し、以下のコマンドで公開 workflow へ渡します。
+workflow は state を読む権限を持たないため、この変数登録が必要です。ID を別ファイルで管理する必要はありません。
+`SITE_BUCKET` も作成・import 後の output を使い、仮のバケット名を残さないでください。
 
 ```sh
 (
@@ -233,8 +253,16 @@ company の apply 後、出力から変数を登録します。`gh` はリポジ
 )
 ```
 
-会社の公開ロールは company S3 の ListBucket / PutObject / DeleteObject と、会社 Distribution の
-CreateInvalidation / GetInvalidation のみを許可します。Terraform state、SSM 書き込み、IAM・DNS・CloudFront 設定変更は許可しません。
+公開ロールの権限は company の `aws_iam_role_policy.deploy` に定義しています。
+
+| 対象 | 許可する操作 | 用途 |
+| --- | --- | --- |
+| 会社 S3 バケットのみ | `s3:ListBucket` | sync の差分確認 |
+| 会社 S3 のオブジェクトのみ | `s3:PutObject`, `s3:DeleteObject` | アップロードと不要ファイルの削除 |
+| 会社 S3 のオブジェクトのみ | `s3:AbortMultipartUpload` | 大きなファイルのアップロード失敗時の後片付け |
+| 会社 CloudFront Distribution のみ | `cloudfront:CreateInvalidation`, `cloudfront:GetInvalidation` | キャッシュ無効化と完了待ち |
+
+Terraform state、SSM、IAM・DNS・証明書・CloudFront 設定の管理権限は付与しません。
 workflow は AWS_ACCOUNT_ID によって別アカウントへの接続も拒否します。
 
 公開前に GitHub 保護を設定します。Terraform は GitHub の Ruleset / Environment を作成しません。
@@ -244,8 +272,16 @@ workflow は AWS_ACCOUNT_ID によって別アカウントへの接続も拒否�
 - `production` の Deployment branches and tags: `main` ブランチと `v*` タグのみ許可する。
 - 必要な承認者を required reviewers に設定する。利用プランによる制限は実際の画面で確認する。
 
+会社ロールは foundation の GitHub OIDC provider と audience `sts.amazonaws.com` を信頼し、subject は次の完全一致です。
+
+```text
+repo:the3-inc@249383711/landing-page@1418165190:environment:production
+```
+
+これは GitHub が返す ID を含む `sub_claim_prefix` に Environment を加えた値です。
+`gh api repos/the3-inc/landing-page/actions/oidc/customization/sub` で確認できます。
+リポジトリの移管・改名や subject 設定変更時は IAM 信頼条件とテストも合わせて更新します。
 Environment の OIDC subject に ref は含まれません。許可 ref とタグ権限も AWS 認証の保護に含まれます。
-カスタム subject を使う場合は company の IAM 信頼ポリシーを実際の subject に合わせます。
 インフラ用の GitHub 自動 apply workflow は作りません。plan / show / 明示的な apply は管理用認証で行い、
 タグ workflow は既存のリソースへコンテンツを公開するだけです。
 
@@ -420,4 +456,6 @@ S3・CloudFront・Route 53・SSM、将来の Lambda / API Gateway の利用料�
 [Terraform mock テスト](https://developer.hashicorp.com/terraform/language/tests/mocking)、
 [remote state を使わない値の共有](https://developer.hashicorp.com/terraform/language/state/remote-state-data)、
 [CloudFront の ACM リージョン](https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/cnames-and-https-requirements.html)、
+[GitHub OIDC subject](https://docs.github.com/en/actions/reference/security/oidc)、
+[S3 multipart upload の権限](https://docs.aws.amazon.com/AmazonS3/latest/userguide/mpuoverview.html)、
 [Lambda OAC](https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/private-content-restricting-access-to-lambda.html)。

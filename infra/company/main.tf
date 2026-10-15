@@ -58,6 +58,7 @@ resource "aws_s3_bucket_versioning" "site" {
 }
 
 resource "aws_acm_certificate" "site" {
+  region            = "us-east-1"
   domain_name       = "the3.co.jp"
   validation_method = "DNS"
   lifecycle {
@@ -77,6 +78,7 @@ resource "aws_route53_record" "certificate" {
 }
 
 resource "aws_acm_certificate_validation" "site" {
+  region                  = "us-east-1"
   certificate_arn         = aws_acm_certificate.site.arn
   validation_record_fqdns = [for record in aws_route53_record.certificate : record.fqdn]
 }
@@ -184,7 +186,7 @@ resource "aws_iam_role" "deploy" {
       Action    = "sts:AssumeRoleWithWebIdentity"
       Condition = { StringEquals = {
         "token.actions.githubusercontent.com:aud" = "sts.amazonaws.com"
-        "token.actions.githubusercontent.com:sub" = "repo:the3-inc/landing-page:environment:production"
+        "token.actions.githubusercontent.com:sub" = "repo:the3-inc@249383711/landing-page@1418165190:environment:production"
       } }
     }]
   })
@@ -197,7 +199,7 @@ resource "aws_iam_role_policy" "deploy" {
     Version = "2012-10-17"
     Statement = [
       { Effect = "Allow", Action = ["s3:ListBucket"], Resource = aws_s3_bucket.site.arn },
-      { Effect = "Allow", Action = ["s3:PutObject", "s3:DeleteObject"], Resource = "${aws_s3_bucket.site.arn}/*" },
+      { Effect = "Allow", Action = ["s3:PutObject", "s3:DeleteObject", "s3:AbortMultipartUpload"], Resource = "${aws_s3_bucket.site.arn}/*" },
       {
         Effect   = "Allow"
         Action   = ["cloudfront:CreateInvalidation", "cloudfront:GetInvalidation"]

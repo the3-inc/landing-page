@@ -1,5 +1,5 @@
 output "aws_region" {
-  value = "us-east-1"
+  value = "ap-northeast-1"
 }
 output "site_bucket" {
   value = aws_s3_bucket.site.id
