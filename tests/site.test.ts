@@ -11,7 +11,6 @@ test("builds company and product pages with shared navigation and development-on
 	try {
 		const buildEnv = { ...process.env };
 		buildEnv.NODE_ENV = "production";
-		buildEnv.PUBLIC_SCHEDULA_DEMO = "false";
 		// Vitest injects DEV/PROD; the CLI must use its own production flags.
 		delete buildEnv.DEV;
 		delete buildEnv.PROD;
@@ -88,8 +87,6 @@ test("builds company and product pages with shared navigation and development-on
 		expect(product).toContain(
 			'rel="canonical" href="https://the3.co.jp/products/schedula/"',
 		);
-		expect(product).toContain("公開準備中");
-		expect(product).not.toContain('href="/products/schedula/demo/');
 		expect(product).not.toContain("<script");
 		const assets = await readdir(join(outDir, "_astro"));
 		const styles = await Promise.all(
@@ -102,26 +99,9 @@ test("builds company and product pages with shared navigation and development-on
 		expect(styles.join("")).not.toContain("light-dark(");
 		expect(styles.join("")).not.toContain("scroll-snap");
 		expect(styles.join("")).not.toContain("100svh");
-		buildEnv.PUBLIC_SCHEDULA_DEMO = "true";
-		await promisify(execFile)(
-			process.execPath,
-			[
-				fileURLToPath(
-					new URL("../node_modules/astro/bin/astro.mjs", import.meta.url),
-				),
-				"build",
-				"--outDir",
-				outDir,
-			],
-			{ cwd: fileURLToPath(new URL("../", import.meta.url)), env: buildEnv },
-		);
-		const enabledProduct = await readFile(
-			join(outDir, "products/schedula/index.html"),
-			"utf8",
-		);
 		for (const id of ["demand", "consecutive_days", "verify"])
-			expect(enabledProduct).toContain(`href="/products/schedula/demo/#${id}"`);
-		expect(enabledProduct).toContain('href="/products/schedula/docs/"');
+			expect(product).toContain(`href="/products/schedula/demo/#${id}"`);
+		expect(product).toContain('href="/products/schedula/docs/"');
 	} finally {
 		await rm(outDir, { recursive: true, force: true });
 	}

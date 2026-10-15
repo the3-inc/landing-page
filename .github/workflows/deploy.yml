@@ -25,7 +25,6 @@ jobs:
       contents: read
       id-token: write
     env:
-      PUBLIC_SCHEDULA_DEMO: ${{ vars.PUBLIC_SCHEDULA_DEMO }}
       RELEASE_TAG: ${{ inputs.tag || github.ref_name }}
       AWS_REGION: ${{ vars.AWS_REGION }}
       SITE_BUCKET: ${{ vars.SITE_BUCKET }}

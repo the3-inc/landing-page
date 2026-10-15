@@ -3,8 +3,6 @@
 import SiteLayout from "../../layouts/SiteLayout.astro";
 
 // biome-ignore lint/correctness/noUnusedVariables: Astroテンプレートで使用する。
-const demoAvailable = import.meta.env.PUBLIC_SCHEDULA_DEMO === "true";
-// biome-ignore lint/correctness/noUnusedVariables: Astroテンプレートで使用する。
 const demos = [
 	[
 		"demand",
@@ -40,9 +38,9 @@ const demos = [
 			<h2 id="demo-title" class="text-2xl font-bold">条件を変えて、計画の変化を見る</h2>
 			<p class="mt-4 leading-8 text-muted">固定日付の架空データを使います。試験値は法令や就業規則の推奨値ではありません。</p>
 			<div class="mt-6 grid gap-5 md:grid-cols-3">
-				{demos.map(([id, title, text]) => <article class="rounded-2xl border border-line p-6"><h3 class="text-lg font-bold">{title}</h3><p class="mt-4 leading-7 text-muted">{text}</p>{demoAvailable ? <a class="mt-5 inline-flex font-bold underline underline-offset-4" href={`/products/schedula/demo/#${id}`}>試してみる →</a> : <p class="mt-5 text-sm text-muted">公開準備中</p>}</article>)}
+				{demos.map(([id, title, text]) => <article class="rounded-2xl border border-line p-6"><h3 class="text-lg font-bold">{title}</h3><p class="mt-4 leading-7 text-muted">{text}</p><a class="mt-5 inline-flex font-bold underline underline-offset-4" href={`/products/schedula/demo/#${id}`}>試してみる →</a></article>)}
 			</div>
-			{demoAvailable && <p class="mt-6"><a href="/products/schedula/docs/" class="font-bold underline underline-offset-4">技術案内・利用方法を見る →</a></p>}
+			<p class="mt-6"><a href="/products/schedula/docs/" class="font-bold underline underline-offset-4">技術案内・利用方法を見る →</a></p>
 		</section>
 		<section aria-labelledby="use-title">
 			<h2 id="use-title" class="text-2xl font-bold">自力での組み込みと、導入・開発の支援</h2>
