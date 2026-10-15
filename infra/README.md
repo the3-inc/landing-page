@@ -3,6 +3,52 @@
 会社サイトと紹介ページは `the3.co.jp`、製品本体は `alpha.the3.co.jp` などの専用 CloudFront で配信します。
 AWS に未適用の状態から構築する Terraform 定義です。この変更では AWS 操作や実リソースの移管は行っていません。
 
+## はじめて構築するときに押さえること
+
+Terraform は、コードに書かれた構成と AWS の現在の状態を比較し、必要なリソースを作成・変更するツールです。
+このリポジトリでは構成の設計図は用意済みです。初回は「どの AWS アカウントか」「既存のどのドメインか」
+「管理記録をどこへ保存するか」を入力し、計画を確認してから実際の AWS に反映します。
+
+| 用語・ファイル | 意味 | 初回にやること |
+| --- | --- | --- |
+| `*.tf` | 作りたい AWS 構成の設計図 | 既存の構成を確認する。通常リージョンは東京、CloudFront 用証明書だけ米国東部に設定済み |
+| root | 独立して操作する Terraform のディレクトリ | 共通認証基盤の `infra/foundation` を先に、会社サイトの `infra/company` を後に操作する |
+| `terraform.tfvars` | 設計図へ渡す入力値 | AWS アカウント ID と、foundation には Hosted Zone ID を記入する |
+| state | 設計図と実際の AWS リソースを対応付ける台帳 | S3 に保存する。作成した CloudFront ID やロール ARN も Terraform が記録する |
+| `backend.hcl` | state の保存先設定 | state 用 S3 名と root ごとの保存先 `key` を記入する |
+| output | Terraform が管理するリソースの情報を取り出す窓口 | 構築後に取得し、GitHub の公開設定へ渡す |
+
+**特に大事なのは、操作対象のアカウント・既存ゾーン・state 保存先を一致させることと、apply 前に plan を読むことです。**
+state 用 S3 とサイトの HTML 用 S3 は用途が違います。state 用 S3 は構築担当が最初に用意し、
+サイト用 S3 は company が作成します。state を失うと既存リソースとの対応が分からなくなるため、
+保存先のバケット・key を途中で安易に変更せず、バージョニング・暗号化・非公開設定を維持します。
+
+### 誰が、どこで操作するか
+
+以下は操作の担当区分です。同じ人が複数の担当を兼ねることもできます。承認は GitHub に設定した承認者が行います。
+端末のコマンドは、このリポジトリをチェックアウトしたルートディレクトリで実行します。
+
+| 操作 | 誰が行うか | どこで行うか・使う認証 | 何が変わるか・確認すること |
+| --- | --- | --- | --- |
+| AWS 認証・ツールの準備 | インフラ構築担当 | 構築端末。対象 AWS アカウントの管理用プロファイル | AWS リソースは変更しない。S3・CloudFront・IAM・DNS などの構築と state 管理に必要な権限を持つ認証を使う |
+| AWS アカウント・Hosted Zone ID の確認 | インフラ構築担当 | 同じ端末の AWS CLI、または AWS コンソールの Route 53 | 読み取り。既存 `the3.co.jp` のパブリックゾーンを特定する |
+| state 用 S3 の準備 | インフラ構築担当 | 同じ端末の AWS CLI、または AWS コンソールの S3。管理用認証 | 未作成なら AWS にバケットを作る。サイト用バケットとは分ける |
+| `backend.hcl`・`terraform.tfvars` の編集 | インフラ構築担当 | 構築端末のエディター | ローカルの4ファイルだけを変更する |
+| `init`・`plan`・`show` | インフラ構築担当 | 構築端末の Terraform。管理用認証 | 準備・計画確認。AWS リソースの作成・変更・削除はまだ行わない |
+| `apply` | インフラ構築担当 | 同じ構築端末の Terraform。管理用認証 | 保存した計画を AWS に反映する。foundation 完了後に company を適用する |
+| output の取得と GitHub 変数・保護設定の登録 | GitHub 設定担当 | output は構築端末。登録は GitHub Settings、または設定変更権限を持つ `gh` | GitHub の設定が変わる。AWS 基盤の output を正しく転記する |
+| リリースタグの作成・push | リリース担当 | 開発端末の Git。タグ作成を許可された GitHub アカウント | push で本番 workflow が起動する。対象コミットの main CI 成功を確認する |
+| production の承認 | 設定された承認者 | GitHub Actions の実行画面 | 承認待ちのジョブを開始する。required reviewers を設定した場合に必要 |
+| S3 配置・CloudFront 無効化・HTTP 確認 | GitHub Actions | GitHub の runner。OIDC でデプロイ専用ロールを引き受ける | 本番コンテンツを更新する。管理用の AWS 認証は渡さない |
+| 最終的な画面確認 | リリース担当 | ブラウザで `https://the3.co.jp` | 表示・リンクを確認する。HTTP 200 だけでは見た目を確認できない |
+
+構築担当が使う AWS 管理用認証と、公開 workflow の `AWS_ROLE_ARN` は役割が違います。
+管理用認証はインフラを作るために事前に必要です。公開用ロールは company が必要な権限とともに作成し、
+GitHub Actions はそのロールを使ってサイトのファイルとキャッシュだけを更新します。
+
+初回 company apply は DNS の向き先も変えます。**インフラ構築完了と、ページ公開完了は別です。**
+タグ push 後のデプロイが終わるまでサイトのファイルは配備されないため、構築・初回公開のタイミングを合わせてください。
+
 ## タグデプロイに必要な設定
 
 初回は **ローカルの Terraform 入力 → AWS 基盤構築 → GitHub 設定 → タグ push → 承認・公開確認** の順に進めます。
@@ -93,6 +139,10 @@ CloudFront・IAM・Route 53 はグローバルサービスです。
 
 ### アカウントと DNS の確認
 
+インフラ構築担当が構築端末で実行します。`AWS_PROFILE` は端末に登録した管理用プロファイル名です。
+プロファイルや AWS CLI がまだない場合は、対象アカウントへのログイン方法とツールの準備を先に完了します。
+`aws sts get-caller-identity` の `Account` が構築先であることを確認してから先へ進みます。
+
 ```sh
 export AWS_PROFILE=your-infrastructure-profile
 export AWS_REGION=ap-northeast-1
@@ -105,6 +155,7 @@ aws route53 list-hosted-zones-by-name --dns-name the3.co.jp \
 `TF_VAR_aws_account_id` は実際のアカウント ID に置き換えます。
 provider と backend の両方で想定アカウントを制限します。誤ったアカウントの状態で続行しないでください。
 Route 53 で管理している既存の `the3.co.jp` パブリックゾーンを使います。Hosted Zone は新規作成しません。
+コンソールで確認する場合は、**Route 53 → ホストゾーン → the3.co.jp → ホストゾーンの詳細** の ID を控えます。
 同じアカウントのゾーン ID を指定し、ドメインの NS がそのゾーンに委任されていることを確認します。
 foundation はゾーン名と公開 / 非公開を確認しますが、外部の NS 委任は検証しません。
 
@@ -119,6 +170,10 @@ aws route53 list-resource-record-sets --hosted-zone-id Z_REPLACE_WITH_PUBLIC_ZON
 旧 CloudFormation を適用した可能性がある場合は、後述の移管手順を先に確認します。
 
 ### state backend を用意する
+
+backend は Terraform の台帳を保存する仕組みです。このバケットは Terraform の最初の `init` より前に必要なので、
+インフラ構築担当が管理用認証で用意します。以下の作成・設定コマンドは実際に AWS を変更します。
+AWS コンソールの S3 から用意する場合も、東京リージョン・パブリックアクセス全ブロック・バージョニング有効・暗号化有効にします。
 
 会社・製品はそれぞれ別の state key と、その key / lock に限定したアクセス権を使います。
 読み取りだけでも state には機密情報が含まれ得るため、製品から foundation / company の state を読める権限は与えません。
@@ -146,12 +201,41 @@ DynamoDB ロックやリポジトリへの state のコミットは使いませ�
 
 ### root ごとの入力を設定する
 
+インフラ構築担当が構築端末で設定例をコピーし、エディターで4ファイルを編集します。この操作は AWS を変更しません。
+
 ```sh
 cp infra/foundation/backend.hcl.example infra/foundation/backend.hcl
 cp infra/company/backend.hcl.example infra/company/backend.hcl
 cp infra/foundation/terraform.tfvars.example infra/foundation/terraform.tfvars
 cp infra/company/terraform.tfvars.example infra/company/terraform.tfvars
 ```
+
+入力値の例です。アカウント ID・ゾーン ID・バケット名は例示値なので、実際の値へ置き換えます。
+
+`infra/foundation/terraform.tfvars`:
+
+```hcl
+aws_account_id = "123456789012"
+hosted_zone_id = "Z0123456789EXAMPLE"
+```
+
+`infra/company/terraform.tfvars`:
+
+```hcl
+aws_account_id = "123456789012"
+```
+
+`infra/foundation/backend.hcl`:
+
+```hcl
+bucket              = "replace-with-private-versioned-state-bucket"
+key                 = "production/foundation/terraform.tfstate"
+region              = "ap-northeast-1"
+allowed_account_ids = ["123456789012"]
+```
+
+`infra/company/backend.hcl` は同じ state 用バケットとアカウントを使い、`key` だけを
+`production/company/terraform.tfstate` にします。同じバケット内に別々の台帳を保存する指定です。
 
 `backend.hcl` の bucket・allowed_account_ids と、tfvars の aws_account_id を実値に変更します。
 backend の region は state バケットの実際のリージョンに合わせます。新規作成の例は `ap-northeast-1` です。
@@ -160,6 +244,16 @@ foundation の hosted_zone_id も `/hostedzone/` を除いた実値にします�
 backend を変更する際は state 移行を別途計画し、既存環境で空の key へ安易に切り替えないでください。
 
 ## foundation の plan / apply
+
+インフラ構築担当が構築端末で、前述の管理用プロファイルを使って実行します。
+`-chdir=infra/foundation` は「このディレクトリの設計図を使う」という指定です。
+
+| コマンド | 意味 | AWS リソースへの反映 |
+| --- | --- | --- |
+| `init` | provider を取得し、state 保存先を初期設定する | リソースは作成・変更しない。既存 state の移行を求められた場合は保存先を再確認する |
+| `plan -out=...` | 現在の AWS と設計図を比較し、実行計画をファイルに保存する | リソースは作成・変更しない。AWS の読み取りと state のロックを行う |
+| `show` | 保存した実行計画を表示する | リソースは変更しない |
+| `apply 計画ファイル` | 保存済みの計画を実行する | **AWS の作成・変更・削除を行う** |
 
 ```sh
 terraform -chdir=infra/foundation init -backend-config=backend.hcl -lockfile=readonly
@@ -180,7 +274,13 @@ import は state を更新する操作です。所有者を確認した後に、
 ```sh
 terraform -chdir=infra/foundation plan -out=foundation.tfplan
 terraform -chdir=infra/foundation show foundation.tfplan
-# 内容を確認して適用する場合のみ
+```
+
+plan では `+` が作成、`~` が変更、`-` が削除、`-/+` などが置換を示します。
+新規構築では想定した OIDC・SSM の作成になっていること、既存リソースの意図しない削除・置換がないことを確認します。
+**次のコマンドが AWS に反映する操作です。保存済み plan を指定した apply は追加の yes 入力なしに実行されるため、先に計画を確認します。**
+
+```sh
 terraform -chdir=infra/foundation apply foundation.tfplan
 ```
 
@@ -247,6 +347,7 @@ audience は `sts.amazonaws.com` を要求します。会社・他製品の subj
 ## company の plan / apply
 
 foundation の適用後に実行します。3つの SSM 値が存在しなければ plan が失敗します。
+担当者・端末・認証は foundation と同じです。ここで会社サイトの配信基盤とデプロイ専用ロールを作成します。
 
 新規構築では company が S3・CloudFront・証明書・デプロイロールを作成し、実 ID は state に記録します。
 既存 CloudFront を使う場合は、対象ドメイン・Origin・証明書と所有者を確認します。company の backend を init し、定義を実物に合わせてから
@@ -259,7 +360,12 @@ Terraform は AWS 上のリソースを自動検索して採用しません。st
 terraform -chdir=infra/company init -backend-config=backend.hcl -lockfile=readonly
 terraform -chdir=infra/company plan -out=company.tfplan
 terraform -chdir=infra/company show company.tfplan
-# 内容を確認して適用する場合のみ
+```
+
+既存 Hosted Zone 自体を新規作成せず、会社の S3・CloudFront・証明書・DNS レコード・ロールが計画どおりであることを確認します。
+DNS 切り替えのタイミングも確認したうえで、インフラ構築担当が次を実行します。
+
+```sh
 terraform -chdir=infra/company apply company.tfplan
 ```
 
@@ -270,6 +376,17 @@ ACM の検証 CNAME と apex の A / AAAA を同じ root で作成します。
 **初回 apply で DNS が向きますが、初回タグのデプロイ完了まではページを返せません。**
 
 ## GitHub の公開設定
+
+company の構築後、インフラ構築担当が構築端末で次を実行して、作成結果を確認します。この操作は読み取りです。
+
+```sh
+terraform -chdir=infra/company output
+```
+
+表示された実際のバケット名・CloudFront ID・ロール ARN などを GitHub 設定担当へ渡します。
+同じ人が担当する場合も、ここから先は GitHub 設定を変更する操作です。
+ブラウザでは Settings → Environments → production → Environment variables に登録します。
+以下の一括登録コマンドを使う場合は、Terraform output を読める構築端末で、GitHub 設定変更権限を持つ `gh` 認証を使います。
 
 初回だけ `production` Environment を用意します。既存 Environment では承認・許可 ref 設定を保持します。
 company の apply 後、出力から変数を登録します。`gh` はリポジトリ設定を変更できるアカウントで認証します。
