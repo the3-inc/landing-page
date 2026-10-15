@@ -106,12 +106,61 @@ resource "aws_cloudfront_distribution" "site" {
   http_version        = "http2and3"
   price_class         = "PriceClass_200"
   wait_for_deployment = true
+  web_acl_id          = var.enable_schedula ? aws_wafv2_web_acl.site[0].arn : null
   origin {
     origin_id                = "company-site"
     domain_name              = aws_s3_bucket.site.bucket_regional_domain_name
     origin_access_control_id = aws_cloudfront_origin_access_control.site.id
     s3_origin_config {
       origin_access_identity = ""
+    }
+  }
+  dynamic "origin" {
+    for_each = var.enable_schedula ? [local.schedula] : []
+    content {
+      origin_id                = "schedula-static"
+      domain_name              = try(origin.value.static_origin_domain, "invalid.s3.ap-northeast-1.amazonaws.com")
+      origin_access_control_id = aws_cloudfront_origin_access_control.site.id
+      s3_origin_config {
+        origin_access_identity = ""
+      }
+    }
+  }
+  dynamic "origin" {
+    for_each = var.enable_schedula ? [local.schedula] : []
+    content {
+      origin_id                = "schedula-api"
+      domain_name              = try(origin.value.function_url_domain, "invalid.lambda-url.ap-northeast-1.on.aws")
+      origin_access_control_id = aws_cloudfront_origin_access_control.schedula_lambda[0].id
+      custom_origin_config {
+        http_port                = 80
+        https_port               = 443
+        origin_protocol_policy   = "https-only"
+        origin_ssl_protocols     = ["TLSv1.2"]
+        origin_read_timeout      = 35
+        origin_keepalive_timeout = 5
+      }
+    }
+  }
+  dynamic "ordered_cache_behavior" {
+    for_each = local.schedula_routes
+    content {
+      path_pattern               = ordered_cache_behavior.value.path
+      target_origin_id           = ordered_cache_behavior.value.api ? "schedula-api" : "schedula-static"
+      viewer_protocol_policy     = "redirect-to-https"
+      allowed_methods            = ordered_cache_behavior.value.api ? ["GET", "HEAD", "OPTIONS", "PUT", "POST", "PATCH", "DELETE"] : ["GET", "HEAD"]
+      cached_methods             = ["GET", "HEAD"]
+      compress                   = true
+      cache_policy_id            = ordered_cache_behavior.value.assets ? "658327ea-f89d-4fab-a63d-7e88639e58f6" : "4135ea2d-6df8-44a3-9df3-4b5a84be39ad"
+      origin_request_policy_id   = ordered_cache_behavior.value.api ? aws_cloudfront_origin_request_policy.schedula_api[0].id : null
+      response_headers_policy_id = aws_cloudfront_response_headers_policy.schedula[0].id
+      dynamic "function_association" {
+        for_each = ordered_cache_behavior.value.api ? [] : [true]
+        content {
+          event_type   = "viewer-request"
+          function_arn = aws_cloudfront_function.schedula_directory[0].arn
+        }
+      }
     }
   }
   default_cache_behavior {

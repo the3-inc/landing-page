@@ -1,0 +1,16 @@
+---
+// biome-ignore lint/correctness/noUnusedImports: Astroテンプレートで使用する。
+import SiteLayout from "../../layouts/SiteLayout.astro";
+---
+
+<SiteLayout title="製品 | the3合同会社" description="the3合同会社の製品と、業務への導入・システム組み込みをご案内します。">
+	<section class="mx-auto max-w-4xl px-6 py-16 md:px-12 md:py-20" aria-labelledby="products-title">
+		<p class="text-xs tracking-widest text-muted">PRODUCTS</p>
+		<h1 id="products-title" class="mt-4 text-3xl font-bold">製品</h1>
+		<article class="mt-10 rounded-2xl border border-line p-8">
+			<h2 class="text-2xl font-bold">shift-schedula</h2>
+			<p class="mt-4 leading-8 text-muted">技能、勤務可能時間、必要人数、勤務ルールから、担当配置と勤務計画を作成する最適化エンジンです。</p>
+			<a href="/products/schedula/" class="mt-6 inline-flex rounded-full bg-forest px-6 py-3 font-bold text-on-forest">詳しく見る →</a>
+		</article>
+	</section>
+</SiteLayout>

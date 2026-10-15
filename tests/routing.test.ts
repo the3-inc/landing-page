@@ -26,3 +26,32 @@ test.each([
 	expect(request.uri).toBe(expected);
 	expect(request.querystring.ref.value).toBe("link");
 });
+
+const schedulaHandler = runInNewContext(
+	`${readFileSync(new URL("../infra/company/schedula-directory.js", import.meta.url), "utf8")}\nhandler`,
+);
+
+test.each(["demo", "docs"])("canonicalizes schedula %s", (name) => {
+	expect(
+		schedulaHandler({ request: { uri: `/products/schedula/${name}` } }),
+	).toEqual({
+		statusCode: 308,
+		headers: { location: { value: `/products/schedula/${name}/` } },
+	});
+	expect(
+		schedulaHandler({
+			request: { uri: `/products/schedula/${name}/`, querystring: {} },
+		}).uri,
+	).toBe(`/products/schedula/${name}/index.html`);
+});
+
+test("keeps schedula assets and nested document keys", () => {
+	for (const uri of [
+		"/products/schedula/assets/app.hash.js",
+		"/products/schedula/docs/python-api.md",
+	]) {
+		const request = { uri, querystring: { source: { value: "company" } } };
+		expect(schedulaHandler({ request })).toBe(request);
+		expect(request.uri).toBe(uri);
+	}
+});

@@ -16,9 +16,10 @@ Astro と Tailwind CSS 4 で構築した、the3合同会社の会社サイトで
 初回準備は [インフラ README](infra/README.md)、公開操作は [タグで本番デプロイするまで](#タグで本番デプロイするまで)を参照してください。
 
 現在のページは、理念・事業紹介の `/`、会社情報・アクセスの `/company/`、
-メール・電話の問い合わせ先を掲載した `/contact/` の3つです。
-製品紹介は将来 `/products/<name>/` に追加し、製品本体やデモは `alpha.the3.co.jp` などの
-専用サブドメインで配信します。製品ごとに CloudFront・配信元・公開 workflow を持ち、紹介ページからリンクします。
+メール・電話の問い合わせ先を掲載した `/contact/`、製品一覧 `/products/`、商品紹介 `/products/schedula/` の5つです。
+schedulaの公開デモと技術案内は `/products/schedula/` 配下へ登録し、専用S3 / Lambdaから配信します。
+利用アプリは `schedula.the3.co.jp` に分けます。[接続契約・初回登録](infra/SCHEDULA.md)を参照してください。
+デモ公開確認前はリンクを無効にし、`PUBLIC_SCHEDULA_DEMO=true` で有効にします。
 
 ## 開発
 
@@ -66,7 +67,7 @@ pre-commit hook はステージ済みのファイルだけを検査します。
 使用中の `@astrojs/check` が TypeScript 5・6 に対応しているため、TypeScript 6 を固定しています。
 `build` は型検査後に `dist/` を生成し、`preview` は生成済みサイトをローカル配信します。
 
-Vitest は一時ディレクトリへ3ページをビルドし、本文・共通ナビゲーション・理念の掲載先・
+Vitest は一時ディレクトリへ5ページをビルドし、本文・共通ナビゲーション・理念の掲載先・
 問い合わせ／地図リンク・生成 CSS・本番スクリプトと開発 UI の除外を検査します。
 テーマのテストでは、システム設定の変更、保存済みの選択、ストレージが使えない場合を確認します。
 
@@ -133,7 +134,7 @@ git push origin refs/tags/v1.0.0
 
 Actions の **Deploy production** を確認し、production の承認待ちであれば承認します。
 workflow はタグの検証 → lint・テスト・ビルド → S3 配置 → CloudFront 無効化・完了待ち →
-公開3ページの HTTP 200 確認を行います。成功時の実行サマリーにはタグ・コミット・無効化 ID が残ります。
+公開5ページの HTTP 200 確認を行います。成功時の実行サマリーにはタグ・コミット・無効化 ID が残ります。
 
 ```sh
 gh run list --repo the3-inc/landing-page --workflow deploy.yml

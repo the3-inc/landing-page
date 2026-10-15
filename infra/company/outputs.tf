@@ -20,3 +20,7 @@ output "cloudfront_url" {
 output "aws_account_id" {
   value = var.aws_account_id
 }
+
+output "edge_contract_parameter" {
+  value = aws_ssm_parameter.edge.name
+}
