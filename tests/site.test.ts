@@ -83,6 +83,14 @@ test("builds company and product pages with shared navigation and development-on
 			"utf8",
 		);
 		expect(productIndex).toContain('href="/products/schedula/"');
+		for (const [html, current] of [
+			[productIndex, "page"],
+			[product, "location"],
+		]) {
+			const link = html?.match(/<a\b[^>]*href="\/products\/"[^>]*>/)?.[0];
+			expect(link).toContain(`aria-current="${current}"`);
+			expect(link).toContain(`aria-[current=${current}]:underline`);
+		}
 		expect(product).toContain("シフト作成を、自社の業務に。");
 		expect(product).toContain(
 			'rel="canonical" href="https://the3.co.jp/products/schedula/"',
