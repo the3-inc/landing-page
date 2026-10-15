@@ -1,8 +1,9 @@
 # landing-page
 
 Company website for the3合同会社, built with Astro, Tailwind CSS 4, and static site generation (SSG).
-Product websites and demos are deployed independently on subdomains and linked
-with ordinary links from this site. Add their URLs when the destinations are known.
+Product websites and demos will be deployed independently under `/products/<name>/`
+through a shared CloudFront distribution. Each product owns its S3 or Lambda origin
+and release workflow; the shared delivery stack owns path routing.
 
 ## Development
 
@@ -70,7 +71,11 @@ deployed manually to roll back.
 
 See [AWS setup and release operations](infra/README.md) for the CloudFormation
 template, GitHub settings, resource tags, release commands, and recovery limits.
-The CloudFormation stack provisions the certificate, DNS records in the existing
-Route 53 public hosted zone, and delivery resources in `us-east-1`. Complete the
-initial AWS provisioning and GitHub protection settings before pushing the first
-release tag. The deployment workflow verifies all three public page URLs.
+Infrastructure is split into `infra/shared-delivery.yaml` (CloudFront, certificate,
+DNS, routing and shared OIDC) and `infra/company-site.yaml` (company S3 and deployment
+permissions). Provision company storage, then shared delivery, then connect the
+company stack using the shared outputs. The initial instructions use `us-east-1`.
+Complete provisioning and GitHub protection settings before pushing the first tag.
+The company workflow invalidates only company page and asset paths and verifies
+all three public page URLs. See the infrastructure README for adding S3 or Lambda
+products under `/products/` without combining their releases with the company site.

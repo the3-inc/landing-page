@@ -1,0 +1,133 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Company website storage and GitHub deployment permissions
+
+Parameters:
+  DistributionId:
+    Type: String
+    Default: ''
+    Description: Shared delivery DistributionId; empty provisions storage only
+    AllowedPattern: '^$|[A-Z0-9]+'
+  GitHubOidcProviderArn:
+    Type: String
+    Default: ''
+    Description: Shared delivery GitHubOidcProviderArn; required when connecting the distribution
+    AllowedPattern: '^$|arn:aws:iam::[0-9]{12}:oidc-provider/token.actions.githubusercontent.com'
+  GitHubRepository:
+    Type: String
+    Default: the3-inc/landing-page
+    AllowedPattern: '[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+'
+
+Conditions:
+  DeliveryConnected: !Not [!Equals [!Ref DistributionId, '']]
+
+Rules:
+  ConnectedProvider:
+    Assertions:
+      - Assert: !Or
+          - !Equals [!Ref DistributionId, '']
+          - !Not [!Equals [!Ref GitHubOidcProviderArn, '']]
+        AssertDescription: Connecting a distribution requires its GitHub OIDC provider ARN
+
+Resources:
+  SiteBucket:
+    Type: AWS::S3::Bucket
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      OwnershipControls:
+        Rules:
+          - ObjectOwnership: BucketOwnerEnforced
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+      VersioningConfiguration:
+        Status: Enabled
+      Tags:
+        - Key: Project
+          Value: landing-page
+        - Key: Environment
+          Value: production
+        - Key: ManagedBy
+          Value: CloudFormation
+
+  BucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref SiteBucket
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - !If
+            - DeliveryConnected
+            - Sid: CloudFrontReadOnly
+              Effect: Allow
+              Principal:
+                Service: cloudfront.amazonaws.com
+              Action: s3:GetObject
+              Resource: !Sub '${SiteBucket.Arn}/*'
+              Condition:
+                StringEquals:
+                  AWS:SourceArn: !Sub 'arn:${AWS::Partition}:cloudfront::${AWS::AccountId}:distribution/${DistributionId}'
+            - !Ref 'AWS::NoValue'
+          - Sid: RequireTLS
+            Effect: Deny
+            Principal: '*'
+            Action: 's3:*'
+            Resource:
+              - !GetAtt SiteBucket.Arn
+              - !Sub '${SiteBucket.Arn}/*'
+            Condition:
+              Bool:
+                aws:SecureTransport: false
+
+  DeployRole:
+    Type: AWS::IAM::Role
+    Condition: DeliveryConnected
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Federated: !Ref GitHubOidcProviderArn
+            Action: sts:AssumeRoleWithWebIdentity
+            Condition:
+              StringEquals:
+                token.actions.githubusercontent.com:aud: sts.amazonaws.com
+                token.actions.githubusercontent.com:sub: !Sub 'repo:${GitHubRepository}:environment:production'
+      Policies:
+        - PolicyName: DeployStaticSite
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action: s3:ListBucket
+                Resource: !GetAtt SiteBucket.Arn
+              - Effect: Allow
+                Action: [s3:PutObject, s3:DeleteObject]
+                Resource: !Sub '${SiteBucket.Arn}/*'
+              - Effect: Allow
+                Action: [cloudfront:CreateInvalidation, cloudfront:GetInvalidation]
+                Resource: !Sub 'arn:${AWS::Partition}:cloudfront::${AWS::AccountId}:distribution/${DistributionId}'
+      Tags:
+        - Key: Project
+          Value: landing-page
+        - Key: Environment
+          Value: production
+        - Key: ManagedBy
+          Value: CloudFormation
+
+Outputs:
+  SiteBucket:
+    Value: !Ref SiteBucket
+  SiteBucketDomainName:
+    Value: !GetAtt SiteBucket.RegionalDomainName
+  DeployRoleArn:
+    Condition: DeliveryConnected
+    Value: !GetAtt DeployRole.Arn

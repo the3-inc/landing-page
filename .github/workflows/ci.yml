@@ -26,6 +26,6 @@ jobs:
         run: |
           python3 -m venv "$RUNNER_TEMP/cfn-lint"
           "$RUNNER_TEMP/cfn-lint/bin/pip" install cfn-lint==1.46.0
-          "$RUNNER_TEMP/cfn-lint/bin/cfn-lint" infra/site.yaml
+          "$RUNNER_TEMP/cfn-lint/bin/cfn-lint" infra/*.yaml
       - run: pnpm test
       - run: pnpm build

@@ -81,7 +81,8 @@ jobs:
         run: |
           set -euo pipefail
           invalidation=$(aws cloudfront create-invalidation \
-            --distribution-id "$DISTRIBUTION_ID" --paths '/*' \
+            --distribution-id "$DISTRIBUTION_ID" \
+            --paths '/' '/index.html' '/company' '/company/*' '/contact' '/contact/*' '/_astro/*' \
             --query 'Invalidation.Id' --output text)
           aws cloudfront wait invalidation-completed \
             --distribution-id "$DISTRIBUTION_ID" --id "$invalidation"

@@ -1,38 +1,44 @@
-# AWS 配信とリリース
+# 共通配信基盤と会社サイト
 
-Astro の `dist/` を非公開 S3 に配置し、CloudFront の HTTPS URL から配信します。
-S3 への読み取りは対象 CloudFront の OAC に限定します。
-デプロイロールは、このリポジトリの GitHub Environment `production` からの
-OIDC 認証だけを受け付けます。AWS アクセスキーは登録しません。
+`https://the3.co.jp` の入口を共通 CloudFront にまとめ、会社サイトと将来の製品をパスで分岐します。
+共通配信基盤とコンテンツの IaC・リリースを分けます。CloudFront の構成は共通スタックだけが更新します。
 
-## 初回の AWS 設定
+| テンプレート | スタック名 | 管理するリソース |
+| --- | --- | --- |
+| `shared-delivery.yaml` | `the3-shared-delivery-production` | 証明書、DNS、CloudFront、Origin / Behavior、静的配信用 OAC / Function、GitHub OIDC プロバイダー |
+| `company-site.yaml` | `the3-company-site-production` | 会社専用 S3、バケットポリシー、会社リポジトリ用デプロイロール |
+| 将来の製品リポジトリの IaC | 製品ごと | 製品専用 S3 / Lambda、配信元のアクセス許可、製品のデプロイロール |
 
-公開 URL は `https://the3.co.jp` です。既存の Route 53 パブリックホストゾーンを使い、
-`site.yaml` で ACM 証明書と DNS 検証、非公開 S3、CloudFront、ディレクトリの URL 書き換え、
-ルートドメインの A / AAAA エイリアス、GitHub OIDC とデプロイロールを作成します。
-既存のホストゾーンやドメイン登録は作成・移管しません。`www` は今回の対象外です。
+共通基盤は会社 S3 の `SiteBucketDomainName` をパラメーターで受け取ります。
+会社サイトは共通基盤の `DistributionId` と `GitHubOidcProviderArn` を受け取ります。
+循環参照を避けるため、初回は **会社 S3 作成 → 共通基盤作成 → 会社サイトの接続設定** の順です。
+CloudFormation の相互 Export / Import は使いません。通常のコンテンツ更新でこの手順を再実行する必要はありません。
 
-証明書と配信リソースを一つのスタックで作るため、**作成先は `us-east-1` 固定**です。
-S3 もこのリージョンに配置します。CloudFront は各地のエッジから配信します。
-この手順は新規構築向けです。別リージョンの既存スタックを移行する手順ではありません。
+## 初回構築
 
-AWS CLI v2、GitHub CLI、`jq` を用意し、管理用 AWS 認証と `gh auth login` を設定します。
-AWS アクセスキーは GitHub に登録しません。以下はリポジトリのルートで実行します。
+以下は AWS が未構築の状態からの手順です。旧 `site.yaml` の単一スタックを作成済みの場合は、
+この手順をそのまま実行せず、既存リソースの保持・インポートと DNS / CloudFront Alias の移行を別途計画します。
+旧スタックにこの分割後のテンプレートを直接適用すると、削除や置き換えが起きます。
 
-### 対象アカウントとホストゾーンの確認
+AWS CLI v2、GitHub CLI、`jq`、管理用 AWS 認証、`gh auth login` を用意します。
+コマンドは Bash / Zsh で、リポジトリのルートから実行します。
+共通基盤は ACM の要件により `us-east-1` 固定です。以下では会社 S3 も同リージョンに作成します。
+
+### アカウント・既存 DNS の確認
 
 ```sh
 export AWS_PROFILE=your-admin-profile
 export AWS_REGION=us-east-1
+export COMPANY_SITE_STACK=the3-company-site-production
+export SHARED_DELIVERY_STACK=the3-shared-delivery-production
 aws sts get-caller-identity
 aws route53 list-hosted-zones-by-name --dns-name the3.co.jp \
   --query 'HostedZones[?Name==`the3.co.jp.`].[Id,Config.PrivateZone]' --output table
 ```
 
-`PrivateZone=false` のゾーン ID を選び、`/hostedzone/` を除いて設定します。
+同じ AWS アカウントの既存パブリックホストゾーンを選び、`/hostedzone/` を除く ID を指定します。
 同名ゾーンが複数ある場合は、ドメインの権威 DNS に委任されているゾーンを選んでください。
-証明書の自動検証には、ゾーンとスタックが同じ AWS アカウントにあり、
-ドメインの NS がそのゾーンを指している必要があります。
+ACM の自動 DNS 検証には、ドメインの NS がそのゾーンを指している必要があります。
 
 ```sh
 export SITE_HOSTED_ZONE_ID=Z_REPLACE_WITH_PUBLIC_ZONE_ID
@@ -41,95 +47,118 @@ aws route53 list-resource-record-sets --hosted-zone-id "$SITE_HOSTED_ZONE_ID" \
   --query 'ResourceRecordSets[?Name==`the3.co.jp.`]'
 ```
 
-既存のルート A / AAAA レコードがある場合、このテンプレートは上書きして取り込みません。
-既存サイトへの影響を確認し、移行・切り戻しを決めてから競合を解消してください。
-メール用 MX / TXT、他のサブドメインはこのスタックの管理対象にしません。
+既存のルート A / AAAA は自動では上書き・取り込みしません。
+競合がある場合は既存サイトへの影響と切り戻しを確認してから移行します。
+ドメイン登録・NS・MX / TXT・他のサブドメインは今回の管理対象にしません。
 
-### IaC の実行
+### 会社サイトのストレージ作成
 
-アカウント内の GitHub OIDC プロバイダーを探して再利用し、未作成なら IaC で作成します。
-検出結果が空になるのは一覧取得に成功して該当プロバイダーが存在しない場合だけです。
+```sh
+aws cloudformation deploy \
+  --stack-name "$COMPANY_SITE_STACK" \
+  --template-file infra/company-site.yaml \
+  --capabilities CAPABILITY_IAM \
+  --tags Project=landing-page Environment=production ManagedBy=CloudFormation
+```
+
+初回は接続先が未指定のため、S3 と TLS 強制のバケットポリシーだけを作ります。
+S3 は非公開・暗号化・バージョニング有効で、スタック削除時も保持します。
+
+### 共通配信基盤の作成
+
+アカウント共通の GitHub OIDC プロバイダーがあれば再利用し、なければ作成します。
+以下の OIDC 自動検出は初回専用です。
 
 ```sh
 (
   set -euo pipefail
+  company_domain=$(aws cloudformation describe-stacks --stack-name "$COMPANY_SITE_STACK" \
+    --query 'Stacks[0].Outputs[?OutputKey==`SiteBucketDomainName`].OutputValue | [0]' --output text)
   oidc_arn=$(aws iam list-open-id-connect-providers \
     --query 'OpenIDConnectProviderList[].Arn' --output json | \
     jq -er 'map(select(endswith(":oidc-provider/token.actions.githubusercontent.com"))) | .[0] // ""')
   aws cloudformation deploy \
-    --stack-name landing-page-production \
-    --template-file infra/site.yaml \
+    --stack-name "$SHARED_DELIVERY_STACK" \
+    --template-file infra/shared-delivery.yaml \
     --capabilities CAPABILITY_IAM \
     --parameter-overrides \
       HostedZoneId="$SITE_HOSTED_ZONE_ID" \
-      GitHubRepository=the3-inc/landing-page \
+      CompanySiteBucketDomainName="$company_domain" \
       GitHubOidcProviderArn="$oidc_arn" \
-    --tags Project=landing-page Environment=production ManagedBy=CloudFormation
-  aws cloudformation describe-stacks \
-    --stack-name landing-page-production \
-    --query 'Stacks[0].Outputs' --output table
+    --tags Project=shared-delivery Environment=production ManagedBy=CloudFormation
 )
 ```
 
-上のブロックは Bash / Zsh で実行します。
-証明書の検証と CloudFront の反映が完了するまで待ちます。
-**この時点で DNS も切り替わりますが、初回タグのデプロイまではページを返せません。**
+証明書の DNS 検証、CloudFront、ルート A / AAAA の作成完了まで待ちます。
+**この時点で DNS が向きますが、次の接続設定と初回タグデプロイが終わるまでページを返せません。**
 
-IaC が新規作成した OIDC プロバイダーはアカウント共通リソースとして削除時も保持します。
-スタック更新時には、前回使った `GitHubOidcProviderArn` を維持してください。
-初回に空で作成した場合、更新では `GitHubOidcProviderArn=""` を明示します。
-上の自動検出ブロックは初回専用です。更新時に自分の作成したプロバイダーの ARN を渡すと、
-条件が変わり、既存リソースの保持・管理範囲が変わるためです。
+### 会社サイトを共通基盤に接続
 
-S3 バケット名と IAM ロール名は AWS が生成します。バケットはこのサイト専用です。
-スタック削除時も S3 とオブジェクトを保持します。S3 のバージョニングを有効にしているため、
-古いオブジェクトや過去バージョンの保管費用が蓄積します。必要になった時点で保持期間を決めます。
-CloudFront、S3、Route 53 の利用料金が発生します。
+```sh
+(
+  set -euo pipefail
+  delivery=$(aws cloudformation describe-stacks --stack-name "$SHARED_DELIVERY_STACK" \
+    --query 'Stacks[0].Outputs' --output json)
+  distribution_id=$(printf '%s' "$delivery" | jq -er '.[] | select(.OutputKey=="DistributionId") | .OutputValue')
+  oidc_arn=$(printf '%s' "$delivery" | jq -er '.[] | select(.OutputKey=="GitHubOidcProviderArn") | .OutputValue')
+  aws cloudformation deploy \
+    --stack-name "$COMPANY_SITE_STACK" \
+    --template-file infra/company-site.yaml \
+    --capabilities CAPABILITY_IAM \
+    --parameter-overrides \
+      DistributionId="$distribution_id" \
+      GitHubOidcProviderArn="$oidc_arn" \
+      GitHubRepository=the3-inc/landing-page \
+    --tags Project=landing-page Environment=production ManagedBy=CloudFormation
+)
+```
+
+対象 CloudFront からの S3 読み取り許可と、会社専用のデプロイロールを追加します。
+ロールには会社 S3 の更新と共有 Distribution のキャッシュ無効化だけを許可し、
+DNS・CloudFront 設定・製品ストレージの更新権限を与えません。
 
 ## GitHub 設定
 
-IaC 完了後、GitHub Environment と変数を CLI で登録できます。
-`gh` は `the3-inc/landing-page` の設定を変更できるアカウントで認証してください。
+初回だけ `production` Environment と変数を作成します。既存 Environment がある場合は、
+その承認・許可 ref 設定を維持した上で変数登録部分を実行してください。
 
 ```sh
 (
   set -euo pipefail
   gh api --method PUT repos/the3-inc/landing-page/environments/production
-  outputs=$(aws cloudformation describe-stacks \
-    --stack-name landing-page-production --query 'Stacks[0].Outputs' --output json)
-  gh variable set AWS_REGION --repo the3-inc/landing-page --env production --body us-east-1
-  for pair in SITE_BUCKET:SiteBucket DISTRIBUTION_ID:DistributionId AWS_ROLE_ARN:DeployRoleArn; do
+  company=$(aws cloudformation describe-stacks --stack-name "$COMPANY_SITE_STACK" \
+    --query 'Stacks[0].Outputs' --output json)
+  distribution_id=$(aws cloudformation describe-stacks --stack-name "$SHARED_DELIVERY_STACK" \
+    --query 'Stacks[0].Outputs[?OutputKey==`DistributionId`].OutputValue | [0]' --output text)
+  gh variable set AWS_REGION --repo the3-inc/landing-page --env production --body "$AWS_REGION"
+  gh variable set DISTRIBUTION_ID --repo the3-inc/landing-page --env production --body "$distribution_id"
+  for pair in SITE_BUCKET:SiteBucket AWS_ROLE_ARN:DeployRoleArn; do
     key=${pair%%:*}
     output=${pair#*:}
-    value=$(printf '%s' "$outputs" | jq -er --arg key "$output" \
+    value=$(printf '%s' "$company" | jq -er --arg key "$output" \
       '.[] | select(.OutputKey == $key) | .OutputValue')
     gh variable set "$key" --repo the3-inc/landing-page --env production --body "$value"
   done
 )
 ```
 
-登録する変数は以下です。
-
-| 変数 | 値 |
+| 変数 | 値の取得元 |
 | --- | --- |
-| `AWS_REGION` | スタックを作成したリージョン |
-| `SITE_BUCKET` | Output `SiteBucket` |
-| `DISTRIBUTION_ID` | Output `DistributionId` |
-| `AWS_ROLE_ARN` | Output `DeployRoleArn` |
+| `AWS_REGION` | 会社 S3 のリージョン。上記手順では `us-east-1` |
+| `SITE_BUCKET` | 会社スタックの `SiteBucket` |
+| `AWS_ROLE_ARN` | 会社スタックの `DeployRoleArn` |
+| `DISTRIBUTION_ID` | 共通スタックの `DistributionId` |
 
-公開を有効にする前に以下を設定します。YAML を追加するだけではこれらの保護は有効になりません。
+AWS アクセスキーは登録しません。OIDC の信頼先は `the3-inc/landing-page` の Environment `production` です。
+公開前に以下の GitHub 保護を設定します。YAML の追加だけでは有効になりません。
 
-- `main` の Ruleset: PR と `CI / validate` 相当の実際のステータスチェックを必須にする。
-- `v*` タグの Ruleset: 更新・削除を禁止し、作成者をリリース担当者に限定する。
-- `production` の Deployment branches and tags: `main` ブランチと `v*` タグのみ許可する。
-  `main` は手動の切り戻しワークフローを実行するために必要です。
-- 必要な承認者を Environment の required reviewers に設定する。
-  利用プランによって設定できる保護が異なるため、実際の設定画面で確認する。
+- `main` Ruleset: PR と実際の `CI / validate` ステータスチェックを必須にする。
+- `v*` タグ Ruleset: 更新・削除を禁止し、作成者をリリース担当者に限定する。
+- Environment の Deployment branches and tags: `main` ブランチと `v*` タグのみ許可する。
+- 必要な承認者を required reviewers に設定する。利用プランによる制限は設定画面で確認する。
 
-Environment の OIDC subject にはタグやブランチ名が含まれません。
-Environment の許可 ref とタグ作成権限が AWS 認証の保護の一部になります。
-GitHub 側で OIDC subject をカスタマイズしている場合は、実際の subject に合わせて
-`infra/site.yaml` の信頼ポリシーを変更してください。
+Environment の OIDC subject に ref は含まれないため、許可 ref とタグ作成権限も AWS 認証の保護に含まれます。
+カスタム OIDC subject を使っている場合は会社スタックの信頼ポリシーを実際の subject に合わせます。
 
 ## リリースタグとデプロイ
 
@@ -157,7 +186,7 @@ GitHub Actions の `GITHUB_TOKEN` で作ったタグでは通常別ワークフ�
 
 ハッシュ付き `_astro/` アセットを先に配置し、次にページを同期します。
 以前の `_astro/` は保持し、それ以外の不要ファイルは削除します。
-CloudFront の全パスを無効化し、完了を待った後、公開 URL の `/`・`/company/`・`/contact/` が
+会社ページと `/_astro/*` のキャッシュだけを無効化し、完了を待った後、公開 URL の `/`・`/company/`・`/contact/` が
 HTTPS で HTTP 200 を返すことを確認します。すべて成功した後に、実行サマリーにタグ・コミット・無効化 ID を記録します。
 タグ push 後は `gh run list --workflow deploy.yml` で実行を探し、`gh run watch RUN_ID --exit-status`
 で完了を確認できます。HTTP 検証は表示内容や CSS の見た目まで保証しないため、公開 URL をブラウザでも確認してください。
@@ -177,22 +206,155 @@ S3 の更新はファイル単位で、サイト全体の切り替えは原子�
 アップロード途中で失敗した場合は同じタグを手動再実行するか、以前のタグへ切り戻します。
 無効化に失敗した場合はアップロードだけ完了している可能性があるため、実行ログと実際の URL を確認します。
 
-## リソースタグと範囲
+## 共通基盤・会社インフラの更新
 
-AWS リソースには `Project=landing-page`、`Environment=production`、
-`ManagedBy=CloudFormation` を付けます。リリースタグはソースコードの版、
-リソースタグは費用集計・管理対象の識別に使い分けます。
-個々のリリースでインフラタグを書き換えず、デプロイ実行サマリーで公開版を追跡します。
+CloudFront の Origin / Behavior は `shared-delivery.yaml` に集約します。
+会社・製品のタグ workflow から共通基盤の IaC を実行しません。
+インフラ変更は管理用 AWS 認証で変更差分を確認して適用します。
+既存スタックの更新では、未指定のパラメーターは前回値を再利用します。
 
-公開ドメインは `the3.co.jp` のみです。`www` とステージング環境は含みません。
-CloudFront Function は末尾 `/` の URI に `index.html`、拡張子のない URI に `/index.html` を付けます。
-存在しないページをトップページに置き換えません。
-公開後の通常リリース・切り戻しはタグの workflow だけで行い、IaC の再実行は不要です。
-インフラ変更がある場合のみ、管理用 AWS 認証で CloudFormation を更新します。
+```sh
+aws cloudformation deploy \
+  --stack-name "$SHARED_DELIVERY_STACK" \
+  --template-file infra/shared-delivery.yaml \
+  --capabilities CAPABILITY_IAM \
+  --tags Project=shared-delivery Environment=production ManagedBy=CloudFormation
 
-参照: [AWS OAC](https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/private-content-restricting-access-to-s3.html)、
-[GitHub OIDC](https://docs.github.com/en/actions/how-tos/secure-your-work/security-harden-deployments/oidc-in-aws)、
-[AWS CLI sync](https://docs.aws.amazon.com/cli/latest/reference/s3/sync.html)。
+aws cloudformation deploy \
+  --stack-name "$COMPANY_SITE_STACK" \
+  --template-file infra/company-site.yaml \
+  --capabilities CAPABILITY_IAM \
+  --tags Project=landing-page Environment=production ManagedBy=CloudFormation
+```
 
-独自ドメインの参照: [ACM リージョン要件](https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/cnames-and-https-requirements.html)、
-[CloudFormation 証明書の自動 DNS 検証](https://docs.aws.amazon.com/AWSCloudFormation/latest/TemplateReference/aws-resource-certificatemanager-certificate.html)。
+共通スタックの `GitHubOidcProviderArn` 入力は初回値を維持します。初回に空でプロバイダーを
+作成した場合、更新時も空を維持し、作成済み ARN を自動検出して渡し直さないでください。
+共通スタックで新規作成した OIDC プロバイダーは削除時も保持します。
+共通 Distribution を作り直した場合は会社・各製品の配信元ポリシーと GitHub の ID も更新します。
+
+## /products 配下に製品を追加する
+
+製品ごとに専用のリポジトリ、ストレージ / 実行環境、デプロイロール、リリースタグを持ちます。
+会社用 S3 に製品成果物を混在させません。会社 workflow の `s3 sync --delete` は会社専用バケットだけが対象です。
+
+### 配信するパスとアプリの契約を決める
+
+例として製品 Alpha を `/products/alpha/` に公開します。
+
+| パス | 配信先 | 設定 |
+| --- | --- | --- |
+| `/products/alpha/api` と `/products/alpha/api/*` | API Gateway / Lambda Function URL | 静的ページより先に評価、必要なメソッド・認証情報を転送 |
+| `/products/alpha` と `/products/alpha/*` | 製品専用 S3 または SSR 用 Lambda | 製品に合わせたキャッシュ・パス処理 |
+| その他 | 会社 S3 | 現在の DefaultCacheBehavior |
+
+`/products/alpha/*` は末尾スラッシュのない `/products/alpha` に一致しません。
+両方を登録するか、専用のリダイレクトを実装します。`/products/alpha*` は別名の製品も拾うため使いません。
+`/products/` を一覧ページにする場合は、この会社サイトにページを追加して一覧の所有者と無効化対象も更新します。
+
+製品の CSS・画像・JS・画面遷移・認証コールバックも `/products/alpha/` に対応させます。
+Astro なら製品側に `site: "https://the3.co.jp"` と `base: "/products/alpha"` を設定します。
+会社サイトは `/_astro/*` を使用するため、製品のアセットは `/products/alpha/_astro/*` などに分けます。
+同じドメインはブラウザのオリジンを共有します。Cookie の名前・Path、localStorage のキーも製品間で調整します。
+
+### 静的な製品を S3 に追加する
+
+1. 製品側の IaC で非公開・暗号化・バージョニング有効の専用 S3 とデプロイロールを作成する。
+   バケットポリシーで共通 `DistributionId` からの読み取りだけを許可し、TLS を強制する。
+   OIDC プロバイダーは共通出力を再利用し、信頼先は製品リポジトリの Environment に限定する。
+2. 製品のタグ workflow で成果物を `s3://PRODUCT_BUCKET/products/alpha/` に配置する。
+   例えば `products/alpha/index.html` と `products/alpha/_astro/...` を置く。
+3. 共通 IaC の `Distribution.Properties.DistributionConfig` に以下を追記する。
+   `Origins` は既存の会社 Origin を残して末尾に追加し、`CacheBehaviors` は具体的なパスを先に並べる。
+   サンプルのバケットドメインは製品スタックの RegionalDomainName 出力に置き換える。
+
+```yaml
+Origins:
+  - Id: product-alpha
+    DomainName: alpha-example.s3.us-east-1.amazonaws.com
+    OriginAccessControlId: !GetAtt OriginAccessControl.Id
+    S3OriginConfig:
+      OriginAccessIdentity: ''
+CacheBehaviors:
+  - PathPattern: /products/alpha
+    TargetOriginId: product-alpha
+    ViewerProtocolPolicy: redirect-to-https
+    AllowedMethods: [GET, HEAD, OPTIONS]
+    CachedMethods: [GET, HEAD]
+    Compress: true
+    CachePolicyId: 658327ea-f89d-4fab-a63d-7e88639e58f6
+    ResponseHeadersPolicyId: 67f7725c-6f97-4210-82d7-5512b31e9d03
+    FunctionAssociations:
+      - EventType: viewer-request
+        FunctionARN: !GetAtt DirectoryIndex.FunctionARN
+  - PathPattern: /products/alpha/*
+    TargetOriginId: product-alpha
+    ViewerProtocolPolicy: redirect-to-https
+    AllowedMethods: [GET, HEAD, OPTIONS]
+    CachedMethods: [GET, HEAD]
+    Compress: true
+    CachePolicyId: 658327ea-f89d-4fab-a63d-7e88639e58f6
+    ResponseHeadersPolicyId: 67f7725c-6f97-4210-82d7-5512b31e9d03
+    FunctionAssociations:
+      - EventType: viewer-request
+        FunctionARN: !GetAtt DirectoryIndex.FunctionARN
+```
+
+この例は URL のプレフィックスを維持します。共通 Function は `/products/alpha/` を
+`/products/alpha/index.html` に書き換えるため、S3 の配置先もそれに合わせます。
+`OriginPath` はプレフィックスを取り除く機能ではありません。
+既存 Function はディレクトリ型の静的ページ向けです。SPA のフォールバックが必要なら製品用 Function を用意し、
+その製品 Behavior だけに関連付けます。Distribution 全体の 403 / 404 をトップページに変換しないでください。
+
+4. `cfn-lint infra/*.yaml` と製品のテストを通し、共通スタックを更新する。
+5. 製品のページ・アセット・下層への直接アクセス、会社の3ページ、未登録パスを確認する。
+6. 以後の製品リリースでは製品タグ workflow だけを実行し、キャッシュ無効化も
+   `/products/alpha` と `/products/alpha/*` に限定する。書き換え前と後の URI を両方カバーする。
+
+### Lambda に振り分ける製品・API を追加する
+
+製品 IaC で Lambda と Function URL、または API Gateway を作成し、その HTTPS ホストを共通 Origin に追加します。
+Lambda Function URL の場合は Lambda 用 OAC（`OriginAccessControlOriginType: lambda`、署名 `always`）を
+共通 IaC に定義し、Function URL は `AWS_IAM` にします。S3 用 OAC は流用しません。
+製品 IaC の Lambda リソースポリシーで共通 Distribution に対する `lambda:InvokeFunctionUrl` と
+`lambda:InvokeFunction` を許可します。具体的なポリシーは AWS の OAC 手順に従い、直接呼び出しの拒否も確認します。
+
+動的 Behavior には静的ページ用 Function を付けず、アプリにプレフィックスを処理させます。
+API を含む場合は API の Behavior を製品ページより前に置き、末尾スラッシュなしの API ルートも扱います。
+動的コンテンツは `CachingDisabled` を基本にし、必要な Cookie・クエリ・認証ヘッダーを Origin Request Policy で転送します。
+Function URL / API Gateway に閲覧側の `Host: the3.co.jp` をそのまま送らず、例えば
+`AllViewerExceptHostHeader` を利用します。HTTP メソッドは API に合わせて設定し、認証結果のキャッシュ混在を防ぎます。
+Function URL の OAC `always` は `Authorization` を AWS 署名で置き換えます。
+アプリの Bearer トークンをそのまま同ヘッダーで転送する設計は避け、Cookie による認証や API Gateway 経由を検討します。
+
+Function URL + OAC の POST / PUT は、クライアントが本文の SHA-256 を `x-amz-content-sha256` に付ける必要があります。
+通常のフォーム・API クライアントとの相性を確認し、必要なら API Gateway 経由を選びます。
+共通 CloudFront があるだけで利用者認証ができるわけではないため、製品側で認証・認可を実装します。
+
+### リリースと切り戻しの境界
+
+製品のタグ workflow は製品専用ストレージ / Lambda だけを更新します。
+各ロールは自身の配信元と共通 Distribution の無効化だけに限定します。
+CloudFront の IAM 権限では無効化する URL パスを制限できないため、パスの限定は workflow とそのレビューで守ります。
+会社サイトにページを追加した場合は、会社 workflow の無効化パスと公開確認対象も合わせて更新します。
+
+製品のコンテンツ切り戻しはその製品の旧タグを使います。
+Origin / Behavior の変更を戻す場合は共通 IaC を戻し、対象パスを無効化します。
+製品を削除する場合は、先に共通 Behavior / Origin を外して反映とキャッシュの扱いを確認し、
+その後に製品の実行環境・許可を削除します。共通基盤を削除すると全サイトに影響します。
+
+## 範囲・費用・参照
+
+公開ドメインは `the3.co.jp` のみです。`www`・ステージング・実製品のリソースはまだ含みません。
+製品追加時に DNS や証明書の追加は不要です。
+共通リソースは `Project=shared-delivery`、会社は `Project=landing-page` とし、
+`Environment=production`、`ManagedBy=CloudFormation` を付けます。
+S3 の旧バージョン・ハッシュ付きアセットは保持するため、保管費用が蓄積します。
+CloudFront・S3・Route 53、将来の Lambda / API Gateway の利用料金が発生します。
+
+参照: [CloudFront Behavior](https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/DownloadDistValuesCacheBehavior.html)、
+[ACM のリージョン](https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/cnames-and-https-requirements.html)、
+[S3 OAC](https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/private-content-restricting-access-to-s3.html)、
+[Lambda OAC](https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/private-content-restricting-access-to-lambda.html)、
+[Origin Request Policy](https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/using-managed-origin-request-policies.html)、
+[CloudFront IAM 権限](https://docs.aws.amazon.com/service-authorization/latest/reference/list_cloudfront.html)、
+[Astro base](https://docs.astro.build/en/reference/configuration-reference/#base)。

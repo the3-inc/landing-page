@@ -1,14 +1,14 @@
 AWSTemplateFormatVersion: '2010-09-09'
-Description: Private static website with CloudFront and GitHub OIDC deployment
+Description: Shared HTTPS delivery and path routing for the3.co.jp
 
 Parameters:
   HostedZoneId:
     Type: AWS::Route53::HostedZone::Id
     Description: Existing public hosted zone for the3.co.jp in this AWS account
-  GitHubRepository:
+  CompanySiteBucketDomainName:
     Type: String
-    Default: the3-inc/landing-page
-    AllowedPattern: '[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+'
+    Description: SiteBucketDomainName output of the company-site stack
+    AllowedPattern: '[a-z0-9.-]+\.s3\.[a-z0-9-]+\.amazonaws\.com'
   GitHubOidcProviderArn:
     Type: String
     Default: ''
@@ -35,7 +35,7 @@ Resources:
       ClientIdList: [sts.amazonaws.com]
       Tags:
         - Key: Project
-          Value: landing-page
+          Value: shared-delivery
         - Key: Environment
           Value: production
         - Key: ManagedBy
@@ -51,7 +51,7 @@ Resources:
           HostedZoneId: !Ref HostedZoneId
       Tags:
         - Key: Project
-          Value: landing-page
+          Value: shared-delivery
         - Key: Environment
           Value: production
         - Key: ManagedBy
@@ -94,33 +94,6 @@ Resources:
           return request;
         }
 
-  SiteBucket:
-    Type: AWS::S3::Bucket
-    DeletionPolicy: Retain
-    UpdateReplacePolicy: Retain
-    Properties:
-      PublicAccessBlockConfiguration:
-        BlockPublicAcls: true
-        BlockPublicPolicy: true
-        IgnorePublicAcls: true
-        RestrictPublicBuckets: true
-      OwnershipControls:
-        Rules:
-          - ObjectOwnership: BucketOwnerEnforced
-      BucketEncryption:
-        ServerSideEncryptionConfiguration:
-          - ServerSideEncryptionByDefault:
-              SSEAlgorithm: AES256
-      VersioningConfiguration:
-        Status: Enabled
-      Tags:
-        - Key: Project
-          Value: landing-page
-        - Key: Environment
-          Value: production
-        - Key: ManagedBy
-          Value: CloudFormation
-
   OriginAccessControl:
     Type: AWS::CloudFront::OriginAccessControl
     Properties:
@@ -141,13 +114,13 @@ Resources:
         IPV6Enabled: true
         PriceClass: PriceClass_200
         Origins:
-          - Id: site
-            DomainName: !GetAtt SiteBucket.RegionalDomainName
+          - Id: company-site
+            DomainName: !Ref CompanySiteBucketDomainName
             OriginAccessControlId: !GetAtt OriginAccessControl.Id
             S3OriginConfig:
               OriginAccessIdentity: ''
         DefaultCacheBehavior:
-          TargetOriginId: site
+          TargetOriginId: company-site
           ViewerProtocolPolicy: redirect-to-https
           AllowedMethods: [GET, HEAD, OPTIONS]
           CachedMethods: [GET, HEAD]
@@ -163,85 +136,21 @@ Resources:
           MinimumProtocolVersion: TLSv1.2_2021
       Tags:
         - Key: Project
-          Value: landing-page
+          Value: shared-delivery
         - Key: Environment
           Value: production
         - Key: ManagedBy
           Value: CloudFormation
-
-  BucketPolicy:
-    Type: AWS::S3::BucketPolicy
-    Properties:
-      Bucket: !Ref SiteBucket
-      PolicyDocument:
-        Version: '2012-10-17'
-        Statement:
-          - Sid: CloudFrontReadOnly
-            Effect: Allow
-            Principal:
-              Service: cloudfront.amazonaws.com
-            Action: s3:GetObject
-            Resource: !Sub '${SiteBucket.Arn}/*'
-            Condition:
-              StringEquals:
-                AWS:SourceArn: !Sub 'arn:${AWS::Partition}:cloudfront::${AWS::AccountId}:distribution/${Distribution}'
-          - Sid: RequireTLS
-            Effect: Deny
-            Principal: '*'
-            Action: 's3:*'
-            Resource:
-              - !GetAtt SiteBucket.Arn
-              - !Sub '${SiteBucket.Arn}/*'
-            Condition:
-              Bool:
-                aws:SecureTransport: false
-
-  DeployRole:
-    Type: AWS::IAM::Role
-    Properties:
-      AssumeRolePolicyDocument:
-        Version: '2012-10-17'
-        Statement:
-          - Effect: Allow
-            Principal:
-              Federated: !If [CreateOidcProvider, !Ref GitHubOidcProvider, !Ref GitHubOidcProviderArn]
-            Action: sts:AssumeRoleWithWebIdentity
-            Condition:
-              StringEquals:
-                token.actions.githubusercontent.com:aud: sts.amazonaws.com
-                token.actions.githubusercontent.com:sub: !Sub 'repo:${GitHubRepository}:environment:production'
-      Policies:
-        - PolicyName: DeployStaticSite
-          PolicyDocument:
-            Version: '2012-10-17'
-            Statement:
-              - Effect: Allow
-                Action: s3:ListBucket
-                Resource: !GetAtt SiteBucket.Arn
-              - Effect: Allow
-                Action: [s3:PutObject, s3:DeleteObject]
-                Resource: !Sub '${SiteBucket.Arn}/*'
-              - Effect: Allow
-                Action: [cloudfront:CreateInvalidation, cloudfront:GetInvalidation]
-                Resource: !Sub 'arn:${AWS::Partition}:cloudfront::${AWS::AccountId}:distribution/${Distribution}'
-      Tags:
-        - Key: Project
-          Value: landing-page
-        - Key: Environment
-          Value: production
-        - Key: ManagedBy
-          Value: CloudFormation
-
 Outputs:
-  SiteBucket:
-    Value: !Ref SiteBucket
   DistributionId:
     Value: !Ref Distribution
-  DeployRoleArn:
-    Value: !GetAtt DeployRole.Arn
+  GitHubOidcProviderArn:
+    Value: !If [CreateOidcProvider, !Ref GitHubOidcProvider, !Ref GitHubOidcProviderArn]
+  StaticOriginAccessControlId:
+    Value: !GetAtt OriginAccessControl.Id
+  DirectoryIndexFunctionArn:
+    Value: !GetAtt DirectoryIndex.FunctionARN
   SiteUrl:
     Value: https://the3.co.jp
-  CloudFrontDomainName:
-    Value: !GetAtt Distribution.DomainName
   CloudFrontUrl:
     Value: !Sub 'https://${Distribution.DomainName}'
