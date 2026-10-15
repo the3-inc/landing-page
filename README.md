@@ -3,6 +3,18 @@
 Astro と Tailwind CSS 4 で構築した、the3合同会社の会社サイトです。
 静的ファイルを S3 に配置し、CloudFront 経由で `https://the3.co.jp` に公開します。
 
+**インフラの構築・変更はローカルの Terraform、サイトのデプロイはタグ push で起動する GitHub Actions が担当します。**
+
+| 作業 | 担当・実行場所 | 実施すること |
+| --- | --- | --- |
+| AWS 基盤の構築・変更 | インフラ構築担当がローカルなどの管理用端末で Terraform を実行 | S3・CloudFront・証明書・IAM ロール・DNS レコードの管理と、既存 Hosted Zone の参照 |
+| 公開先の登録 | GitHub 設定担当が `production` Environment を設定 | Terraform output のバケット名・Distribution ID・ロール ARN などを変数へ登録 |
+| サイトのデプロイ | リリース担当が `vMAJOR.MINOR.PATCH` タグを push し、GitHub Actions が実行 | 必要な承認後にビルド・S3 配置・CloudFront のキャッシュ無効化・公開確認 |
+
+初回準備後のサイト更新は **main へマージ → CI 成功 → タグ push → 必要な承認 → デプロイ** です。
+インフラ構成を変える場合は別途 Terraform を実行します。タグ workflow は Terraform apply を行いません。
+初回準備は [インフラ README](infra/README.md)、公開操作は [タグで本番デプロイするまで](#タグで本番デプロイするまで)を参照してください。
+
 現在のページは、理念・事業紹介の `/`、会社情報・アクセスの `/company/`、
 メール・電話の問い合わせ先を掲載した `/contact/` の3つです。
 製品紹介は将来 `/products/<name>/` に追加し、製品本体やデモは `alpha.the3.co.jp` などの
