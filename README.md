@@ -1,9 +1,10 @@
 # landing-page
 
 Company website for the3合同会社, built with Astro, Tailwind CSS 4, and static site generation (SSG).
-Product websites and demos will be deployed independently under `/products/<name>/`
-through a shared CloudFront distribution. Each product owns its S3 or Lambda origin
-and release workflow; the shared delivery stack owns path routing.
+Product introductions will live under `/products/<name>/` in this company site.
+Product applications and demos will run on their own subdomains, such as
+`alpha.the3.co.jp`, with a dedicated CloudFront distribution, S3 or Lambda origin,
+and release workflow per product. Introduction pages link to those applications.
 
 ## Development
 
@@ -71,11 +72,15 @@ deployed manually to roll back.
 
 See [AWS setup and release operations](infra/README.md) for the CloudFormation
 template, GitHub settings, resource tags, release commands, and recovery limits.
-Infrastructure is split into `infra/shared-delivery.yaml` (CloudFront, certificate,
-DNS, routing and shared OIDC) and `infra/company-site.yaml` (company S3 and deployment
-permissions). Provision company storage, then shared delivery, then connect the
-company stack using the shared outputs. The initial instructions use `us-east-1`.
-Complete provisioning and GitHub protection settings before pushing the first tag.
-The company workflow invalidates only company page and asset paths and verifies
-all three public page URLs. See the infrastructure README for adding S3 or Lambda
-products under `/products/` without combining their releases with the company site.
+Infrastructure is split into `infra/company-delivery.yaml` (company CloudFront,
+certificate, root-domain DNS and reusable account OIDC) and `infra/company-site.yaml`
+(company S3 and deployment permissions). Provision company storage, then company
+delivery, then connect the company stack using the delivery outputs. The initial
+instructions use `us-east-1`. Complete provisioning and GitHub protection settings
+before pushing the first tag.
+The company workflow invalidates the company distribution, including future
+`/products/` introduction pages, and verifies the three existing public pages.
+Introduction pages have not been created yet; extend the public URL checks when
+adding them. Product applications own their DNS records, certificates, CloudFront
+distributions and deployments. See the infrastructure README for adding an
+introduction page and independently publishing its product subdomain.

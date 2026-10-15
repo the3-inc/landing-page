@@ -1,5 +1,5 @@
 AWSTemplateFormatVersion: '2010-09-09'
-Description: Shared HTTPS delivery and path routing for the3.co.jp
+Description: Company website HTTPS delivery for the3.co.jp and product introductions
 
 Parameters:
   HostedZoneId:
@@ -35,7 +35,7 @@ Resources:
       ClientIdList: [sts.amazonaws.com]
       Tags:
         - Key: Project
-          Value: shared-delivery
+          Value: company-delivery
         - Key: Environment
           Value: production
         - Key: ManagedBy
@@ -51,7 +51,7 @@ Resources:
           HostedZoneId: !Ref HostedZoneId
       Tags:
         - Key: Project
-          Value: shared-delivery
+          Value: company-delivery
         - Key: Environment
           Value: production
         - Key: ManagedBy
@@ -81,7 +81,7 @@ Resources:
       Name: !Sub '${AWS::StackName}-directory-index'
       AutoPublish: true
       FunctionConfig:
-        Comment: Resolve Astro directory pages in the private S3 origin
+        Comment: Resolve company pages and product introductions in the private S3 origin
         Runtime: cloudfront-js-2.0
       FunctionCode: |
         function handler(event) {
@@ -136,20 +136,17 @@ Resources:
           MinimumProtocolVersion: TLSv1.2_2021
       Tags:
         - Key: Project
-          Value: shared-delivery
+          Value: company-delivery
         - Key: Environment
           Value: production
         - Key: ManagedBy
           Value: CloudFormation
+
 Outputs:
   DistributionId:
     Value: !Ref Distribution
   GitHubOidcProviderArn:
     Value: !If [CreateOidcProvider, !Ref GitHubOidcProvider, !Ref GitHubOidcProviderArn]
-  StaticOriginAccessControlId:
-    Value: !GetAtt OriginAccessControl.Id
-  DirectoryIndexFunctionArn:
-    Value: !GetAtt DirectoryIndex.FunctionARN
   SiteUrl:
     Value: https://the3.co.jp
   CloudFrontUrl:

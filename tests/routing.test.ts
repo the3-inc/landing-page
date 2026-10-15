@@ -3,7 +3,7 @@ import { runInNewContext } from "node:vm";
 import { expect, test } from "vitest";
 
 const template = readFileSync(
-	new URL("../infra/shared-delivery.yaml", import.meta.url),
+	new URL("../infra/company-delivery.yaml", import.meta.url),
 	"utf8",
 );
 const source = template.match(/FunctionCode: \|\n((?: {8}[^\n]*\n)+)/)?.[1];
@@ -20,8 +20,8 @@ test.each([
 	["/company/index.html", "/company/index.html"],
 	["/products/alpha", "/products/alpha/index.html"],
 	["/products/alpha/", "/products/alpha/index.html"],
-	["/products/alpha/help/", "/products/alpha/help/index.html"],
-	["/products/alpha/_astro/site.css", "/products/alpha/_astro/site.css"],
+	["/products", "/products/index.html"],
+	["/products/", "/products/index.html"],
 ])("routes %s to its S3 object", (uri, expected) => {
 	const request = { uri, querystring: { ref: { value: "link" } } };
 	expect(handler({ request })).toBe(request);
