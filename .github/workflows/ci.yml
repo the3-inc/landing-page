@@ -22,10 +22,18 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - run: pnpm run check
-      - name: Validate CloudFormation
+      - uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd # v3
+        with:
+          terraform_version: 1.16.6
+          terraform_wrapper: false
+      - name: Validate Terraform without AWS credentials
         run: |
-          python3 -m venv "$RUNNER_TEMP/cfn-lint"
-          "$RUNNER_TEMP/cfn-lint/bin/pip" install cfn-lint==1.46.0
-          "$RUNNER_TEMP/cfn-lint/bin/cfn-lint" infra/*.yaml
+          set -euo pipefail
+          terraform fmt -check -recursive infra
+          for root in foundation company; do
+            terraform -chdir="infra/$root" init -backend=false -input=false -lockfile=readonly
+            terraform -chdir="infra/$root" validate
+            terraform -chdir="infra/$root" test
+          done
       - run: pnpm test
       - run: pnpm build

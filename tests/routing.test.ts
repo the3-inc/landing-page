@@ -2,12 +2,10 @@ import { readFileSync } from "node:fs";
 import { runInNewContext } from "node:vm";
 import { expect, test } from "vitest";
 
-const template = readFileSync(
-	new URL("../infra/company-delivery.yaml", import.meta.url),
+const source = readFileSync(
+	new URL("../infra/company/directory-index.js", import.meta.url),
 	"utf8",
 );
-const source = template.match(/FunctionCode: \|\n((?: {8}[^\n]*\n)+)/)?.[1];
-if (!source) throw new Error("CloudFront directory function missing");
 const handler = runInNewContext(`${source}\nhandler`);
 
 test.each([

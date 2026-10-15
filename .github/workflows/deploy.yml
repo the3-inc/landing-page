@@ -30,6 +30,7 @@ jobs:
       SITE_BUCKET: ${{ vars.SITE_BUCKET }}
       DISTRIBUTION_ID: ${{ vars.DISTRIBUTION_ID }}
       AWS_ROLE_ARN: ${{ vars.AWS_ROLE_ARN }}
+      AWS_ACCOUNT_ID: ${{ vars.AWS_ACCOUNT_ID }}
     steps:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
         with:
@@ -48,6 +49,7 @@ jobs:
           : "${SITE_BUCKET:?Set production variable SITE_BUCKET}"
           : "${DISTRIBUTION_ID:?Set production variable DISTRIBUTION_ID}"
           : "${AWS_ROLE_ARN:?Set production variable AWS_ROLE_ARN}"
+          : "${AWS_ACCOUNT_ID:?Set production variable AWS_ACCOUNT_ID}"
           sha=$(node scripts/verify-release.mjs "$RELEASE_TAG")
           echo "sha=$sha" >> "$GITHUB_OUTPUT"
           git checkout --detach "$sha"
@@ -64,6 +66,7 @@ jobs:
         with:
           role-to-assume: ${{ env.AWS_ROLE_ARN }}
           aws-region: ${{ env.AWS_REGION }}
+          allowed-account-ids: ${{ env.AWS_ACCOUNT_ID }}
           role-session-name: landing-page-${{ github.run_id }}
       - name: Upload assets, then pages
         run: |
