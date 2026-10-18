@@ -1,8 +1,8 @@
 # 会社サイトを公開する
 
-会社サイトと商品紹介はこのrepoから公開します。基盤構築はprivateの [the3-infra](https://github.com/the3-inc/the3-infra) で完了させます。
-初回はinfraのbootstrapでデモを公開し、公開先を登録した後に会社サイトを公開します。
-通常更新でschedulaの公開やTerraform applyを呼び出す必要はありません。
+会社サイトと商品紹介はこのrepoから公開します。基盤構築はprivateの [infra](https://github.com/the3-inc/infra) で完了させます。
+infraのbootstrapは準備中APIを含む配信基盤までを構築し、会社サイトやデモの実コンテンツを配置しません。
+公開先の登録後、初回も通常更新もこのrepoの`v*`タグworkflowで公開します。schedulaの公開やTerraform applyは呼び出しません。
 
 ## 初回設定
 
@@ -19,7 +19,7 @@ infraのconfigure-deployが会社用の次の5変数を登録します。Secrets
 
 mainにPR/CIのvalidate必須化、v*タグに作成者制限と移動/削除禁止を設定します。
 productionの許可refはmainとv*に限定し、必要なrequired reviewersを設定します。
-デモリンク用の変数は不要です。会社公開前にデモ・技術案内が利用可能か確認します。
+デモリンク用の変数は不要です。デモ・技術案内の初回公開はschedula自身の`web-v*`タグworkflowで行います。会社公開前に紹介するリンク先が利用可能か確認します。
 
 ## タグによる公開
 
