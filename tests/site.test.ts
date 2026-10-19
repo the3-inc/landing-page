@@ -60,6 +60,21 @@ test("builds company and product pages with shared navigation and development-on
 		);
 		expect(home).not.toContain('id="company-title"');
 		expect(home).not.toContain('id="contact-title"');
+		for (const id of [
+			"philosophy-note-title",
+			"approach-title",
+			"home-products-title",
+			"home-company-title",
+			"home-contact-title",
+		]) {
+			expect(home).toContain(`aria-labelledby="${id}"`);
+			expect(home).toContain(`id="${id}"`);
+		}
+		expect(home).toContain('href="#philosophy-note-title"');
+		const homeContent = home?.match(/<main\b[^>]*>(.*?)<\/main>/s)?.[1];
+		for (const path of [...paths.slice(1), "/products/schedula/"])
+			expect(homeContent).toContain(`href="${path}"`);
+		expect(homeContent).toContain("人が考え、工夫するための時間を増やしたい。");
 		expect(home).toContain('src="/images/value-growth.png"');
 		expect(home).not.toContain("<svg");
 		for (const asset of ["images/value-growth.png", "brand/the3-symbol.png"]) {
