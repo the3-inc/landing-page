@@ -52,6 +52,9 @@ def check(load, origin):
     cache = {}
     site = urlsplit(origin)
 
+    def effective_port(url):
+        return url.port if url.port is not None else (443 if url.scheme == "https" else 80)
+
     def get(path):
         if path not in cache:
             cache[path] = load(path)
@@ -70,7 +73,9 @@ def check(load, origin):
             (target.path, unquote(target.fragment))
             for link in page.navigation
             for target in [urlsplit(urljoin(origin + path, link))]
-            if target.scheme == site.scheme and target.netloc == site.netloc
+            if target.scheme == site.scheme
+            and target.hostname == site.hostname
+            and effective_port(target) == effective_port(site)
         }
         for destination, fragment in REQUIRED_LINKS.get(path, set()):
             if not any(
@@ -84,11 +89,13 @@ def check(load, origin):
             target = urlsplit(urljoin(origin + path, link))
             if (
                 target.scheme not in {"http", "https"}
-                or target.netloc != site.netloc
+                or target.hostname != site.hostname
             ):
                 continue
             if target.scheme != site.scheme:
                 raise ValueError(f"同一サイトのスキームが異なります: {path} -> {link}")
+            if effective_port(target) != effective_port(site):
+                raise ValueError(f"同一サイトのポートが異なります: {path} -> {link}")
             target_media, content = get(target.path)
             if (
                 Path(target.path).suffix not in {"", ".html"}

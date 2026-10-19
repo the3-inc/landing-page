@@ -57,8 +57,13 @@ class SiteCheckTest(unittest.TestCase):
     def test_same_site_links_preserve_the_origin_scheme(self):
         for origin, link, valid in (
             ("https://the3.co.jp", "http://the3.co.jp/company/", False),
+            ("https://the3.co.jp", "http://the3.co.jp:80/company/", False),
             ("http://the3.co.jp", "https://the3.co.jp/company/", False),
             ("https://the3.co.jp", "https://the3.co.jp/company/", True),
+            ("https://the3.co.jp", "https://THE3.CO.JP:443/company/", True),
+            ("https://the3.co.jp:443", "https://the3.co.jp/company/", True),
+            ("http://the3.co.jp", "http://the3.co.jp:80/company/", True),
+            ("http://127.0.0.1:4322", "http://127.0.0.1:4322/company/", True),
             ("https://the3.co.jp", "//the3.co.jp/company/", True),
             ("http://the3.co.jp", "//the3.co.jp/company/", True),
         ):
@@ -69,6 +74,34 @@ class SiteCheckTest(unittest.TestCase):
                 else:
                     with self.assertRaisesRegex(ValueError, "スキーム"):
                         site.check(self.load, origin)
+
+    def test_explicit_default_port_does_not_skip_target_validation(self):
+        for link in (
+            "https://the3.co.jp:443/missing/",
+            "https://THE3.CO.JP:443/company/#missing",
+        ):
+            with self.subTest(link=link):
+                self.files["/"] = ("text/html", f'<a href="{link}">会社</a>')
+                with self.assertRaisesRegex(ValueError, "missing"):
+                    site.check(self.load, "https://the3.co.jp")
+
+    def test_required_navigation_accepts_an_explicit_default_port(self):
+        self.files["/products/"] = (
+            "text/html",
+            f'<a href="https://THE3.CO.JP:443{site.PRODUCT}">製品紹介</a>',
+        )
+        self.assertEqual(site.check(self.load, "https://the3.co.jp"), 10)
+
+    def test_same_host_nonmatching_port_is_not_loaded_from_the_origin(self):
+        for origin, link in (
+            ("https://the3.co.jp", "https://the3.co.jp:8443/company/"),
+            ("https://the3.co.jp:8443", "https://the3.co.jp/company/"),
+            ("https://the3.co.jp", "https://the3.co.jp:0/company/"),
+        ):
+            with self.subTest(origin=origin, link=link):
+                self.files["/"] = ("text/html", f'<a href="{link}">会社</a>')
+                with self.assertRaisesRegex(ValueError, "ポート"):
+                    site.check(self.load, origin)
 
     def test_required_navigation_cannot_be_removed(self):
         for source, href in (
