@@ -112,6 +112,19 @@ test("builds company and product pages with shared navigation and development-on
 			join(outDir, "products/schedula/index.html"),
 			"utf8",
 		);
+		for (const html of [...pages, productIndex, product]) {
+			expect(html).toContain(
+				'<link rel="icon" type="image/svg+xml" href="/brand/the3-symbol.svg">',
+			);
+			for (const tag of ["header", "footer"]) {
+				const section = html.match(
+					new RegExp(`<${tag}\\b[^>]*>(.*?)</${tag}>`, "s"),
+				)?.[1];
+				expect(section).toMatch(
+					/<img[^>]+src="\/brand\/the3-symbol\.svg"[^>]+alt=""/,
+				);
+			}
+		}
 		expect(productIndex).toContain('href="/products/schedula/"');
 		for (const [html, current] of [
 			[productIndex, "page"],
