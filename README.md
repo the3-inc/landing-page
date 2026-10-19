@@ -67,7 +67,7 @@ Astro は `output: "static"` を明示し、サーバーアダプターやフロ
 ## CI と公開
 
 PRとmainのCIはBiome・Vitest・Astro型検査と本番ビルドを実行します。
-TerraformとCloudFrontのURL処理はthe3-infraのCIで検証します。
+TerraformとCloudFrontのURL処理はinfraのCIで検証します。
 通常更新はmainへマージ → main CI成功 → 会社タグpush → 必要な承認 → 公開確認です。
 AWS基盤を変更するときはinfraリポジトリでplan/applyします。会社タグworkflowはTerraformを実行しません。
 製品紹介を追加するときはコンテンツテストとworkflowの公開URL確認も更新してください。
