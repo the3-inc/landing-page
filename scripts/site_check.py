@@ -11,7 +11,7 @@ from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.error import HTTPError
 from urllib.parse import unquote, urljoin, urlsplit
-from urllib.request import HTTPRedirectHandler, build_opener, urlopen
+from urllib.request import HTTPRedirectHandler, build_opener
 
 PRODUCT = "/products/schedula/"
 PAGES = (
@@ -23,18 +23,26 @@ PAGES = (
     PRODUCT + "demo/",
     PRODUCT + "docs/",
 )
+REQUIRED_LINKS = {
+    "/products/": {(PRODUCT, None)},
+    PRODUCT: {(PRODUCT + "demo/", None), (PRODUCT + "docs/", None)},
+    PRODUCT + "demo/": {(PRODUCT, ""), (PRODUCT, "contact"), (PRODUCT + "docs/", None)},
+    PRODUCT + "docs/": {(PRODUCT, ""), (PRODUCT, "contact"), (PRODUCT + "demo/", None)},
+}
 
 
 class Page(HTMLParser):
     def __init__(self, text):
         super().__init__()
-        self.links, self.ids = [], set()
+        self.links, self.navigation, self.ids = [], [], set()
         self.feed(text)
 
     def handle_starttag(self, tag, attributes):
         attrs = dict(attributes)
         if "id" in attrs:
             self.ids.add(attrs["id"])
+        if tag == "a" and "href" in attrs:
+            self.navigation.append(attrs["href"])
         for name in ("href", "src"):
             if name in attrs:
                 self.links.append(attrs[name])
@@ -56,7 +64,23 @@ def check(load, origin):
         media, text = get(path)
         if "text/html" not in media:
             raise ValueError(f"HTMLではありません: {path}")
-        for link in Page(text).links:
+        page = Page(text)
+        navigation = {
+            (target.path, unquote(target.fragment))
+            for link in page.navigation
+            for target in [urlsplit(urljoin(origin + path, link))]
+            if target.scheme in {"http", "https"}
+            and target.netloc == urlsplit(origin).netloc
+        }
+        for destination, fragment in REQUIRED_LINKS.get(path, set()):
+            if not any(
+                target == destination and (fragment is None or anchor == fragment)
+                for target, anchor in navigation
+            ):
+                raise ValueError(
+                    f"必須の導線がありません: {path} -> {destination}#{fragment or ''}"
+                )
+        for link in page.links:
             target = urlsplit(urljoin(origin + path, link))
             if (
                 target.scheme not in {"http", "https"}
@@ -123,6 +147,18 @@ class NoRedirect(HTTPRedirectHandler):
         return None
 
 
+def http_loader(origin):
+    opener = build_opener(NoRedirect)
+
+    def load(path):
+        with opener.open(origin + path, timeout=15) as response:
+            return response.headers.get("Content-Type", ""), response.read().decode(
+                "utf-8", errors="replace"
+            )
+
+    return load
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--url", help="公開URLを検査する（APIの計算は実行しない）")
@@ -143,12 +179,7 @@ def main():
         if parsed.scheme not in {"http", "https"} or not parsed.netloc or parsed.path:
             parser.error("--urlにはhttp(s)のoriginを指定してください")
 
-        def load(path):
-            with urlopen(origin + path, timeout=15) as response:
-                return response.headers.get("Content-Type", ""), response.read().decode(
-                    "utf-8", errors="replace"
-                )
-
+        load = http_loader(origin)
         references = check(load, origin)
         for name in ("demo", "docs"):
             source = origin + PRODUCT + name
