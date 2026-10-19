@@ -35,7 +35,8 @@ git push origin refs/tags/v1.0.0
 ```
 
 例のタグは未使用の場合だけ使います。ローカルのタグ作成だけでは公開されません。package.jsonの版更新やGitHub Release作成は不要です。
-Deploy productionはタグ形式・main履歴を検証し、必要な承認後にlint・テスト・ビルド・会社S3配置・CloudFront無効化と完了待ちを実行します。
+Deploy productionは必要な承認後にタグ形式・main履歴と対象commitの最新main push CI成功を検証し、lint・テスト・ビルド・会社S3配置・CloudFront無効化と完了待ちを実行します。
+対象commitのmain CIが未実行・実行中・失敗の場合は、S3を更新する前に停止します。CI成功を確認してからデプロイを再実行してください。
 確認対象は /、/company/、/contact/、/products/、/products/schedula/ の5ページです。
 会社S3だけを同期し、デモやLambdaを更新しません。成功後はブラウザーでも確認してください。
 workflowにTerraform/state/SSM/IAM/DNS/CloudFront設定の変更権限はありません。
@@ -48,6 +49,7 @@ gh run watch RUN_ID --repo github.com/the3-inc/landing-page --exit-status
 ## 切り戻しと失敗
 
 Actions → Deploy production → Run workflowでBranch: mainと以前の既存タグを指定します。タグは移動せず、新しい修正には次の版を使います。
+productionの許可refにはブランチmainとタグv*の両方が必要です。手動実行も、指定した既存タグのcommitにmain push CIの成功履歴が必要です。
 旧タグをlockfileで再ビルドするため、過去の同一バイトの復元は保証しません。
 S3更新はファイル単位です。失敗時はログ・実URLを確認し、同じタグの再実行か旧タグの公開を行います。
 会社コンテンツの切り戻しで共有経路のTerraformを戻す必要はありません。

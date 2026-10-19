@@ -23,6 +23,7 @@ jobs:
     environment: production
     permissions:
       contents: read
+      actions: read
       id-token: write
     env:
       RELEASE_TAG: ${{ inputs.tag || github.ref_name }}
@@ -53,6 +54,18 @@ jobs:
           sha=$(node scripts/verify-release.mjs "$RELEASE_TAG")
           echo "sha=$sha" >> "$GITHUB_OUTPUT"
           git checkout --detach "$sha"
+      - name: Require successful main CI for the release commit
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_SHA: ${{ steps.release.outputs.sha }}
+        run: |
+          set -euo pipefail
+          success=$(gh api "repos/$GITHUB_REPOSITORY/actions/workflows/ci.yml/runs?head_sha=$RELEASE_SHA&branch=main&event=push&per_page=1" \
+            --jq '.workflow_runs[0] | (.status == "completed" and .conclusion == "success")')
+          if [ "$success" != true ]; then
+            echo "::error::The release commit must have a successful main push CI run. Wait for CI or rerun the failed CI before deploying."
+            exit 1
+          fi
       - uses: pnpm/action-setup@f40ffcd9367d9f12939873eb1018b921a783ffaa # v4
       - name: Set up Node for the release
         uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
