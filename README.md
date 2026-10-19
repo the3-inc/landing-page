@@ -11,6 +11,8 @@ Astro と Tailwind CSS 4 で構築した、the3合同会社の会社サイトで
 infraは準備中APIを含む配信基盤までを構築します。会社サイト・商品紹介は初回も通常更新もこのrepoの`v*`タグworkflowで公開し、デモはschedulaの`web-v*`タグworkflowで公開します。登録フラグやデモリンク用のEnvironment変数は不要です。
 [インフラの管理先](infra/README.md)と[会社サイト公開手順](docs/site-deployment.md)を参照してください。
 
+紹介ページ・デモ・技術文書の分担と変更が必要な箇所は、[会社サイトと製品Webの所有・デザイン・URL方針](docs/product-web-architecture.md)を参照してください。
+
 ## 開発
 
 Node.js **24.21.0**（`.node-version`）と pnpm **12.11.2**（`package.json`）を使います。
@@ -54,6 +56,7 @@ pnpm dev
 pnpm run check
 pnpm run typecheck
 pnpm test
+python3 -m unittest discover -s tests -p 'test_*.py' -v
 pnpm build
 pnpm preview
 ```
@@ -68,6 +71,9 @@ pre-commit hook はステージ済みのファイルだけを検査します。
 Vitest は一時ディレクトリへ5ページをビルドし、本文・共通ナビゲーション・理念の掲載先・
 問い合わせ／地図リンク・生成 CSS・本番スクリプトと開発 UI の除外を検査します。
 テーマのテストでは、システム設定の変更、保存済みの選択、ストレージが使えない場合を確認します。
+
+Python 3.9以上の標準ライブラリで、会社・製品の接続検査もテストします。追加のPythonパッケージは不要です。
+公開パスで両サイトを確認する手順は[サイト間の接続確認](docs/site-integration.md)を参照してください。
 
 Astro は `output: "static"` を明示し、サーバーアダプターやフロントエンドフレームワークを使いません。
 本番 URL は `astro.config.mjs` の `site` に設定しています。
