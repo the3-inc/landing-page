@@ -1,13 +1,15 @@
 import { execFile } from "node:child_process";
 import { mkdtemp, readdir, readFile, rm } from "node:fs/promises";
-import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { promisify } from "node:util";
 import { expect, test } from "vitest";
 
 test("builds company and product pages with shared navigation and development-only theme controls", async () => {
-	const outDir = await mkdtemp(join(tmpdir(), "landing-page-test-"));
+	// Astro renames assets into outDir, so keep it on the project's filesystem.
+	const outDir = await mkdtemp(
+		fileURLToPath(new URL("../.site-test-", import.meta.url)),
+	);
 	try {
 		const buildEnv = { ...process.env };
 		buildEnv.NODE_ENV = "production";
