@@ -3,6 +3,7 @@ dist/
 .astro/
 coverage/
 .vitest/
+.site-test-*/
 
 **/.terraform/
 *.tfstate
