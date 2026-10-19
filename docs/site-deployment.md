@@ -6,8 +6,8 @@ infraのbootstrapは準備中APIを含む配信基盤までを構築し、会社
 
 ## 初回設定
 
-Actionsを実行可能にし、production Environmentを作成します。
-infraのconfigure-deployが会社用の次の5変数を登録します。SecretsではなくEnvironment variablesを使い、長期AWSキーは登録しません。
+infraのbootstrap/apply前にActionsを実行可能にし、production Environmentと保護設定を作成します。infra担当者はこのrepoのEnvironment変数を書き込める`gh`認証を用意します。
+infraのbootstrap最終apply・通常apply成功後、最新outputから会社用の次の5変数を自動同期します。同期だけが失敗した場合は、再applyせずinfraの`configure-deploy`で再試行します。SecretsではなくEnvironment variablesを使い、長期AWSキーは登録しません。
 
 | 変数 | 内容 |
 | --- | --- |
