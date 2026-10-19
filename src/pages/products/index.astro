@@ -4,13 +4,30 @@ import SiteLayout from "../../layouts/SiteLayout.astro";
 ---
 
 <SiteLayout title="製品 | the3合同会社" description="the3合同会社の製品と、業務への導入・システム組み込みをご案内します。">
-	<section class="mx-auto max-w-4xl px-6 py-16 md:px-12 md:py-20" aria-labelledby="products-title">
-		<p class="text-xs tracking-widest text-muted">PRODUCTS</p>
-		<h1 id="products-title" class="mt-4 text-3xl font-bold">製品</h1>
-		<article class="mt-10 rounded-2xl border border-line p-8">
-			<h2 class="text-2xl font-bold">shift-schedula</h2>
-			<p class="mt-4 leading-8 text-muted">技能、勤務可能時間、必要人数、勤務ルールから、担当配置と勤務計画を作成する最適化エンジンです。</p>
-			<a href="/products/schedula/" class="mt-6 inline-flex rounded-full bg-forest px-6 py-3 font-bold text-on-forest">詳しく見る →</a>
+	<div class="page-shell">
+		<header class="page-heading">
+			<div>
+				<p class="page-kicker">PRODUCTS</p>
+				<h1 id="products-title" class="page-title">製品</h1>
+				<p class="page-lead">業務に合わせて、仕組みをつくる。<br />製品と、導入・開発の支援をご案内します。</p>
+			</div>
+		</header>
+		<article class="page-section" aria-labelledby="product-name">
+			<p class="page-kicker">01 / OPTIMIZATION</p>
+			<div class="product-feature">
+				<div>
+					<h2 id="product-name">shift-schedula</h2>
+					<p class="mt-4">担当配置・勤務計画の最適化エンジン</p>
+				</div>
+				<div>
+					<p>技能、勤務可能時間、必要人数、勤務ルールから、担当配置と勤務計画を作成する最適化エンジンです。</p>
+					<a href="/products/schedula/" class="text-link mt-6">詳しく見る<span aria-hidden="true">→</span></a>
+				</div>
+			</div>
 		</article>
-	</section>
+		<section class="page-cta" aria-labelledby="products-contact-title">
+			<h2 id="products-contact-title">自社の業務への導入を、<br />一緒に考えます。</h2>
+			<a href="/contact/" class="text-link">導入・開発を相談する<span aria-hidden="true">→</span></a>
+		</section>
+	</div>
 </SiteLayout>
