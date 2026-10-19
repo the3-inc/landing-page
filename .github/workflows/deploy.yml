@@ -113,6 +113,8 @@ jobs:
               "https://the3.co.jp$path")
             test "$status" = 200
           done
+      - name: Verify navigation and static references
+        run: python3 scripts/site_check.py --url https://the3.co.jp
       - name: Record successful release
         env:
           RELEASE_SHA: ${{ steps.release.outputs.sha }}

@@ -56,6 +56,7 @@ pnpm dev
 pnpm run check
 pnpm run typecheck
 pnpm test
+python3 -m unittest discover -s tests -p 'test_*.py' -v
 pnpm build
 pnpm preview
 ```
@@ -70,6 +71,9 @@ pre-commit hook はステージ済みのファイルだけを検査します。
 Vitest は一時ディレクトリへ5ページをビルドし、本文・共通ナビゲーション・理念の掲載先・
 問い合わせ／地図リンク・生成 CSS・本番スクリプトと開発 UI の除外を検査します。
 テーマのテストでは、システム設定の変更、保存済みの選択、ストレージが使えない場合を確認します。
+
+Python 3.9以上の標準ライブラリで、会社・製品の接続検査もテストします。追加のPythonパッケージは不要です。
+公開パスで両サイトを確認する手順は[サイト間の接続確認](docs/site-integration.md)を参照してください。
 
 Astro は `output: "static"` を明示し、サーバーアダプターやフロントエンドフレームワークを使いません。
 本番 URL は `astro.config.mjs` の `site` に設定しています。

@@ -41,6 +41,9 @@ Deploy productionは必要な承認後にタグ形式・main履歴と対象commi
 会社S3だけを同期し、デモやLambdaを更新しません。成功後はブラウザーでも確認してください。
 workflowにTerraform/state/SSM/IAM/DNS/CloudFront設定の変更権限はありません。
 
+5ページの応答確認に続いて、`scripts/site_check.py --url https://the3.co.jp`で会社・製品間の往復リンク、アンカー、静的参照先も検査します。初回はデモ・技術案内を先に公開してください。
+公開前の生成物による確認と公開後の再確認は[サイト間の接続確認](site-integration.md)を参照してください。
+
 ```sh
 gh run list --repo github.com/the3-inc/landing-page --workflow deploy.yml
 gh run watch RUN_ID --repo github.com/the3-inc/landing-page --exit-status
