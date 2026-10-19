@@ -42,6 +42,7 @@ Deploy productionは必要な承認後にタグ形式・main履歴と対象commi
 workflowにTerraform/state/SSM/IAM/DNS/CloudFront設定の変更権限はありません。
 
 5ページの応答確認に続いて、`scripts/site_check.py --url https://the3.co.jp`で会社・製品間の往復リンク、アンカー、静的参照先も検査します。初回はデモ・技術案内を先に公開してください。
+検査スクリプトは最初にcheckoutするmainからrunnerの一時領域へ保存し、公開対象タグへのcheckout後も使います。スクリプト追加前のタグへ切り戻す場合も接続検査を実行します。
 公開前の生成物による確認と公開後の再確認は[サイト間の接続確認](site-integration.md)を参照してください。
 
 ```sh
