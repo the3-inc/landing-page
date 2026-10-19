@@ -54,6 +54,22 @@ class SiteCheckTest(unittest.TestCase):
     def test_round_trip_with_lesson_fragment_and_asset(self):
         self.assertEqual(site.check(self.load, "https://the3.co.jp"), 10)
 
+    def test_same_site_links_preserve_the_origin_scheme(self):
+        for origin, link, valid in (
+            ("https://the3.co.jp", "http://the3.co.jp/company/", False),
+            ("http://the3.co.jp", "https://the3.co.jp/company/", False),
+            ("https://the3.co.jp", "https://the3.co.jp/company/", True),
+            ("https://the3.co.jp", "//the3.co.jp/company/", True),
+            ("http://the3.co.jp", "//the3.co.jp/company/", True),
+        ):
+            with self.subTest(origin=origin, link=link):
+                self.files["/"] = ("text/html", f'<a href="{link}">会社</a>')
+                if valid:
+                    self.assertEqual(site.check(self.load, origin), 11)
+                else:
+                    with self.assertRaisesRegex(ValueError, "スキーム"):
+                        site.check(self.load, origin)
+
     def test_required_navigation_cannot_be_removed(self):
         for source, href in (
             ("/products/", site.PRODUCT),

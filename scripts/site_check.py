@@ -50,6 +50,7 @@ class Page(HTMLParser):
 
 def check(load, origin):
     cache = {}
+    site = urlsplit(origin)
 
     def get(path):
         if path not in cache:
@@ -69,8 +70,7 @@ def check(load, origin):
             (target.path, unquote(target.fragment))
             for link in page.navigation
             for target in [urlsplit(urljoin(origin + path, link))]
-            if target.scheme in {"http", "https"}
-            and target.netloc == urlsplit(origin).netloc
+            if target.scheme == site.scheme and target.netloc == site.netloc
         }
         for destination, fragment in REQUIRED_LINKS.get(path, set()):
             if not any(
@@ -84,9 +84,11 @@ def check(load, origin):
             target = urlsplit(urljoin(origin + path, link))
             if (
                 target.scheme not in {"http", "https"}
-                or target.netloc != urlsplit(origin).netloc
+                or target.netloc != site.netloc
             ):
                 continue
+            if target.scheme != site.scheme:
+                raise ValueError(f"同一サイトのスキームが異なります: {path} -> {link}")
             target_media, content = get(target.path)
             if (
                 Path(target.path).suffix not in {"", ".html"}
