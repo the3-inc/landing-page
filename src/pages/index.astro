@@ -11,14 +11,80 @@ import SiteLayout from "../layouts/SiteLayout.astro";
 		<div class="hero-content">
 			<h1 id="hero-title">社会に一つでも多く<br />価値あるものを提供する。</h1>
 			<p class="hero-description">ITと業務効率化を通じて、<br />よりよい仕事、よりよい社会へ。</p>
-			<a href="/company/" class="hero-link">私たちについて<span aria-hidden="true">→</span></a>
+			<a href="#philosophy-note-title" class="hero-link">私たちの想い<span aria-hidden="true">↓</span></a>
 		</div>
 		<img class="hero-art" src="/images/value-growth.png" width="2029" height="775" alt="" fetchpriority="high" />
 	</section>
-	<section class="philosophy-note" aria-labelledby="philosophy-note-title">
-		<p class="eyebrow">PHILOSOPHY</p>
-		<h2 id="philosophy-note-title">一つの価値が、次の価値へ。</h2>
-	</section>
+	<div class="page-shell home-sections">
+		<section class="page-section home-intro" aria-labelledby="philosophy-note-title">
+			<div>
+				<p class="page-kicker">PHILOSOPHY</p>
+				<h2 id="philosophy-note-title" class="home-title">一つの価値が、<br />次の価値へ。</h2>
+			</div>
+			<div class="section-body">
+				<p>日々の仕事には、もっとよくできることが、まだあります。繰り返す作業、複雑な調整、誰か一人の経験に頼っている判断。</p>
+				<p>そうした負担を一つずつ減らし、人が考え、工夫するための時間を増やしたい。私たちは、ITと業務効率化を通じて、そのための仕組みをつくります。</p>
+				<p>目の前の仕事が少しよくなる。その積み重ねが、新しい挑戦や、次の価値につながっていく。the3は、そんな変化を社会に一つでも多く届けていきます。</p>
+			</div>
+		</section>
+		<section class="page-section" aria-labelledby="approach-title">
+			<div>
+				<p class="page-kicker">APPROACH</p>
+				<h2 id="approach-title" class="section-title">仕事に向き合い、<br />仕組みを育てる。</h2>
+			</div>
+			<div class="home-approach">
+				<div>
+					<h3>現場を知る</h3>
+					<p>今の業務の流れや、守りたいルールを整理する。何が負担になっているのかを、一緒に考えるところから始めます。</p>
+				</div>
+				<div>
+					<h3>仕組みにする</h3>
+					<p>繰り返す作業の自動化や、複雑な条件の整理。業務に合ったソフトウェアで、日々の仕事を支えます。</p>
+				</div>
+				<div>
+					<h3>使いながら育てる</h3>
+					<p>実際の業務で試し、結果を確かめる。使う人の声や業務の変化に合わせて、改善を重ねていきます。</p>
+				</div>
+			</div>
+		</section>
+		<section class="page-section" aria-labelledby="home-products-title">
+			<div>
+				<p class="page-kicker">PRODUCTS</p>
+				<h2 id="home-products-title" class="section-title">価値を、<br />使えるかたちに。</h2>
+			</div>
+			<article class="product-feature" aria-labelledby="home-product-name">
+				<div>
+					<h3 id="home-product-name" class="home-product-name">shift-schedula</h3>
+					<p class="mt-4">担当配置・勤務計画の最適化エンジン</p>
+				</div>
+				<div>
+					<p>技能、勤務可能時間、必要人数、勤務ルール。現場の条件を整理し、担当配置と勤務計画を作成します。導入や業務システムへの組み込みもご相談いただけます。</p>
+					<div class="mt-6 flex flex-col items-start gap-4">
+						<a href="/products/schedula/" class="text-link">shift-schedulaについて<span aria-hidden="true">→</span></a>
+						<a href="/products/" class="text-link">製品・導入支援を見る<span aria-hidden="true">→</span></a>
+					</div>
+				</div>
+			</article>
+		</section>
+		<section class="page-section" aria-labelledby="home-company-title">
+			<div>
+				<p class="page-kicker">COMPANY</p>
+				<h2 id="home-company-title" class="section-title">the3について</h2>
+			</div>
+			<div class="section-body">
+				<p>ITと業務効率化に取り組む、the3合同会社。会社情報や所在地はこちらからご覧いただけます。</p>
+				<a href="/company/" class="text-link mt-6">会社案内を見る<span aria-hidden="true">→</span></a>
+			</div>
+		</section>
+		<section class="page-cta" aria-labelledby="home-contact-title">
+			<div>
+				<p class="page-kicker">CONTACT</p>
+				<h2 id="home-contact-title" class="mt-4">「もっとよくできそう」を、<br />一緒に考えませんか。</h2>
+				<p class="home-contact-description">業務の課題整理から、製品の導入・個別開発まで。まずは、今のお仕事についてお聞かせください。</p>
+			</div>
+			<a href="/contact/" class="text-link">お問い合わせ<span aria-hidden="true">→</span></a>
+		</section>
+	</div>
 </SiteLayout>
 
 <style>
@@ -69,22 +135,50 @@ import SiteLayout from "../layouts/SiteLayout.astro";
 		pointer-events: none;
 		filter: var(--artwork-filter, none);
 	}
-	.philosophy-note {
+	.home-sections {
 		max-width: 1536px;
-		margin: 0 auto;
-		padding: 48px 5% 64px;
 	}
-	.eyebrow {
-		margin: 0;
-		color: var(--color-forest);
-		font-size: 12px;
-		letter-spacing: 0.25em;
+	.home-intro {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+		border-top: 0;
+		padding-top: 0;
+		padding-bottom: 80px;
 	}
-	h2 {
+	.home-title {
 		margin-top: 26px;
-		font-size: clamp(1.25rem, 2.1vw, 2rem);
-		font-weight: 400;
-		letter-spacing: 0.025em;
+		font-size: clamp(1.75rem, 3vw, 2.75rem);
+		font-weight: 500;
+		line-height: 1.6;
+		letter-spacing: -0.035em;
+		scroll-margin-top: 32px;
+	}
+	.home-approach {
+		display: grid;
+		grid-template-columns: repeat(3, minmax(0, 1fr));
+		gap: 32px;
+	}
+	.home-approach h3 {
+		font-size: 20px;
+		font-weight: 500;
+		line-height: 1.6;
+	}
+	.home-approach p,
+	.home-contact-description {
+		margin-top: 16px;
+		color: var(--color-muted);
+		font-size: 15px;
+		line-height: 2;
+	}
+	.home-product-name {
+		font-size: clamp(2rem, 3.5vw, 3rem);
+		font-weight: 500;
+		letter-spacing: -0.05em;
+		overflow-wrap: anywhere;
+	}
+	@media (max-width: 1023px) {
+		.home-approach {
+			grid-template-columns: minmax(0, 1fr);
+		}
 	}
 	@media (max-width: 767px) {
 		.hero {
@@ -109,8 +203,9 @@ import SiteLayout from "../layouts/SiteLayout.astro";
 			max-width: none;
 			margin: 12px -6.82% 0;
 		}
-		.philosophy-note {
-			padding: 44px 6% 48px;
+		.home-intro {
+			grid-template-columns: minmax(0, 1fr);
+			padding-bottom: 36px;
 		}
 	}
 	@media (prefers-reduced-motion: reduce) {
