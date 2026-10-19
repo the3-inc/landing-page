@@ -11,6 +11,8 @@ Astro と Tailwind CSS 4 で構築した、the3合同会社の会社サイトで
 infraは準備中APIを含む配信基盤までを構築します。会社サイト・商品紹介は初回も通常更新もこのrepoの`v*`タグworkflowで公開し、デモはschedulaの`web-v*`タグworkflowで公開します。登録フラグやデモリンク用のEnvironment変数は不要です。
 [インフラの管理先](infra/README.md)と[会社サイト公開手順](docs/site-deployment.md)を参照してください。
 
+紹介ページ・デモ・技術文書の分担と変更が必要な箇所は、[会社サイトと製品Webの所有・デザイン・URL方針](docs/product-web-architecture.md)を参照してください。
+
 ## 開発
 
 Node.js **24.21.0**（`.node-version`）と pnpm **12.11.2**（`package.json`）を使います。
