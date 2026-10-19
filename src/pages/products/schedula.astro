@@ -23,34 +23,58 @@ const demos = [
 ---
 
 <SiteLayout title="shift-schedula | the3合同会社" description="技能と現場の条件に合わせて担当配置・勤務計画を作る最適化エンジン。導入・業務システムへの組み込みをご相談ください。">
-	<div class="mx-auto max-w-5xl space-y-16 px-6 py-16 md:px-12 md:py-20">
-		<section aria-labelledby="schedula-title">
-			<p class="text-xs tracking-widest text-muted">SHIFT-SCHEDULA</p>
-			<h1 id="schedula-title" class="mt-4 text-4xl font-bold leading-tight">シフト作成を、自社の業務に。</h1>
-			<p class="mt-6 max-w-2xl leading-8 text-muted">技能、勤務可能時間、必要人数、勤務ルール。現場の条件を整理し、担当配置と出退勤・休憩を含む勤務計画を作成します。</p>
-			<a href="#contact" class="mt-8 inline-flex rounded-full bg-forest px-6 py-3 font-bold text-on-forest">導入を相談する ↗</a>
-		</section>
-		<section aria-labelledby="value-title">
-			<h2 id="value-title" class="text-2xl font-bold">計算する仕組みを、現場で使える仕組みへ。</h2>
-			<p class="mt-5 leading-8 text-muted">必要な技能と勤務ルールを守りながら計画を作り、需要を満たせない箇所は不足として表示します。結果と手修正した案は独立した検証で確認できます。検証成功と需要の完全充足、最適性はそれぞれ区別します。</p>
-		</section>
-		<section aria-labelledby="demo-title">
-			<h2 id="demo-title" class="text-2xl font-bold">条件を変えて、計画の変化を見る</h2>
-			<p class="mt-4 leading-8 text-muted">固定日付の架空データを使います。試験値は法令や就業規則の推奨値ではありません。</p>
-			<div class="mt-6 grid gap-5 md:grid-cols-3">
-				{demos.map(([id, title, text]) => <article class="rounded-2xl border border-line p-6"><h3 class="text-lg font-bold">{title}</h3><p class="mt-4 leading-7 text-muted">{text}</p><a class="mt-5 inline-flex font-bold underline underline-offset-4" href={`/products/schedula/demo/#${id}`}>試してみる →</a></article>)}
+	<div class="page-shell">
+		<header class="page-heading">
+			<div>
+				<a href="/products/" class="text-link mb-8">製品一覧へ</a>
+				<p class="page-kicker">SHIFT-SCHEDULA</p>
+				<h1 id="schedula-title" class="page-title">シフト作成を、自社の業務に。</h1>
+				<p class="page-lead">技能、勤務可能時間、必要人数、勤務ルール。現場の条件を整理し、担当配置と出退勤・休憩を含む勤務計画を作成します。</p>
+				<a href="#contact" class="text-link mt-6">導入を相談する<span aria-hidden="true">→</span></a>
 			</div>
-			<p class="mt-6"><a href="/products/schedula/docs/" class="font-bold underline underline-offset-4">技術案内・利用方法を見る →</a></p>
+		</header>
+		<section class="page-section" aria-labelledby="value-title">
+			<div>
+				<p class="page-kicker">01 / APPROACH</p>
+				<h2 id="value-title" class="section-title">計算する仕組みを、<br />現場で使える仕組みへ。</h2>
+			</div>
+			<div class="section-body">
+				<p>必要な技能と勤務ルールを守りながら計画を作り、需要を満たせない箇所は不足として表示します。結果と手修正した案は独立した検証で確認できます。検証成功と需要の完全充足、最適性はそれぞれ区別します。</p>
+			</div>
 		</section>
-		<section aria-labelledby="use-title">
-			<h2 id="use-title" class="text-2xl font-bold">自力での組み込みと、導入・開発の支援</h2>
-			<p class="mt-5 leading-8 text-muted">独自コード・文書・デモのライセンスはMITです。現時点ではソース入手方法をお問い合わせください。PyPI公開やアプリの提供開始を案内するものではありません。</p>
-			<p class="mt-4 leading-8 text-muted">業務ルールの整理、データ連携、画面開発、運用支援は個別にご相談いただけます。支援範囲・費用・期間は案件ごとに確認します。</p>
+		<section class="page-section" aria-labelledby="demo-title">
+			<div>
+				<p class="page-kicker">02 / EXPLORE</p>
+				<h2 id="demo-title" class="section-title">条件を変えて、<br />計画の変化を見る</h2>
+			</div>
+			<div class="section-body">
+				<p>固定日付の架空データを使います。試験値は法令や就業規則の推奨値ではありません。</p>
+				<div class="demo-list mt-8">
+					{demos.map(([id, title, text]) => <article><h3>{title}</h3><p>{text}</p><a class="text-link mt-3" href={`/products/schedula/demo/#${id}`}>試してみる<span aria-hidden="true">→</span></a></article>)}
+				</div>
+				<a href="/products/schedula/docs/" class="text-link mt-4">技術案内・利用方法を見る<span aria-hidden="true">→</span></a>
+			</div>
 		</section>
-		<section id="contact" aria-labelledby="contact-title" class="rounded-2xl bg-surface p-8">
-			<h2 id="contact-title" class="text-2xl font-bold">自社の条件でも実現できるか、ご相談ください。</h2>
-			<p class="mt-4 leading-8 text-muted">対象業務、人数・期間、守りたいルール、現在の運用方法をお知らせください。</p>
-			<a href="mailto:omitsuhashi@the3-o.com?subject=shift-schedula%20導入・個別開発の相談" class="mt-6 inline-flex break-all font-bold underline underline-offset-4">omitsuhashi@the3-o.com</a>
+		<section class="page-section" aria-labelledby="use-title">
+			<div>
+				<p class="page-kicker">03 / SUPPORT</p>
+				<h2 id="use-title" class="section-title">自力での組み込みと、<br />導入・開発の支援</h2>
+			</div>
+			<div class="section-body">
+				<p>独自コード・文書・デモのライセンスはMITです。現時点ではソース入手方法をお問い合わせください。PyPI公開やアプリの提供開始を案内するものではありません。</p>
+				<p>業務ルールの整理、データ連携、画面開発、運用支援は個別にご相談いただけます。支援範囲・費用・期間は案件ごとに確認します。</p>
+			</div>
+		</section>
+		<section id="contact" class="page-section" aria-labelledby="contact-title">
+			<div>
+				<p class="page-kicker">04 / CONTACT</p>
+				<h2 id="contact-title" class="section-title">導入のご相談</h2>
+			</div>
+			<div class="section-body">
+				<p>自社の条件でも実現できるか、ご相談ください。</p>
+				<p>対象業務、人数・期間、守りたいルール、現在の運用方法をお知らせください。</p>
+				<a href="mailto:omitsuhashi@the3-o.com?subject=shift-schedula%20導入・個別開発の相談" class="text-link contact-address mt-6">omitsuhashi@the3-o.com</a>
+			</div>
 		</section>
 	</div>
 </SiteLayout>

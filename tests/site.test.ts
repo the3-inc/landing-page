@@ -58,6 +58,19 @@ test("builds company and product pages with shared navigation and development-on
 		);
 		expect(home).not.toContain('id="company-title"');
 		expect(home).not.toContain('id="contact-title"');
+		expect(home).toContain('src="/images/value-growth.png"');
+		expect(home).not.toContain("<svg");
+		for (const asset of ["images/value-growth.png", "brand/the3-symbol.png"]) {
+			const image = await readFile(join(outDir, asset));
+			expect(image.subarray(1, 4).toString()).toBe("PNG");
+		}
+		const logo = await readFile(join(outDir, "brand/the3-symbol.svg"), "utf8");
+		expect(logo).toContain('xmlns="http://www.w3.org/2000/svg"');
+		expect(logo).toContain('viewBox="0 0 1254 1254"');
+		expect(logo).toContain("<path");
+		expect(logo).not.toMatch(/<image|<script|data:image|base64/);
+		for (const color of ["#173f35", "#88ac91", "#c8ab4d"])
+			expect(logo).toContain(`fill="${color}"`);
 		for (const html of [company, contact]) {
 			expect(html).not.toContain("社会に一つでも多く");
 			expect(html).not.toContain('id="philosophy"');
@@ -110,6 +123,13 @@ test("builds company and product pages with shared navigation and development-on
 		for (const id of ["demand", "consecutive_days", "verify"])
 			expect(product).toContain(`href="/products/schedula/demo/#${id}"`);
 		expect(product).toContain('href="/products/schedula/docs/"');
+		for (const text of [
+			"固定日付の架空データを使います。",
+			"検証成功と需要の完全充足、最適性はそれぞれ区別します。",
+			"PyPI公開やアプリの提供開始を案内するものではありません。",
+			"支援範囲・費用・期間は案件ごとに確認します。",
+		])
+			expect(product).toContain(text);
 	} finally {
 		await rm(outDir, { recursive: true, force: true });
 	}

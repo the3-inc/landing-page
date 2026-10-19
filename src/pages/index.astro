@@ -7,27 +7,115 @@ import SiteLayout from "../layouts/SiteLayout.astro";
 	title="the3合同会社 | 社会に一つでも多く価値あるものを提供する"
 	description="the3合同会社は、ITと業務効率化を通じて、社会に一つでも多く価値あるものを提供します。"
 >
-	<section id="philosophy" aria-labelledby="hero-title" class="py-16 lg:py-20">
-		<div class="mx-auto grid w-full max-w-7xl gap-12 px-6 md:px-12 lg:grid-cols-[1.2fr_1fr] lg:items-center">
-			<div>
-				<p class="mb-8 flex items-center gap-3 text-xs font-bold tracking-[0.18em]"><span class="h-2 w-2 rounded-full bg-forest" aria-hidden="true"></span> PHILOSOPHY</p>
-				<h1 id="hero-title" class="text-[clamp(1.45rem,7.2vw,2rem)] md:text-[clamp(2rem,4vw,3.25rem)] leading-[1.5] font-bold tracking-[-0.06em]">社会に一つでも多く<br />価値あるものを提供する<span class="text-forest">。</span></h1>
-				<p class="mt-7 max-w-lg text-sm leading-8 text-muted md:text-base">ITと業務効率化を通じて、<br />よりよい仕事、よりよい社会へ。<br />the3合同会社は、この想いを出発点に取り組みます。</p>
-				<a href="/company/" class="mt-9 inline-flex items-center gap-10 border-b border-forest pb-3 text-sm font-bold">会社案内を見る <span aria-hidden="true">→</span></a>
-			</div>
-			<div class="relative mx-auto aspect-square w-full max-w-sm overflow-hidden lg:mx-0 lg:justify-self-end rounded-tl-[5rem] rounded-br-[5rem] bg-artwork" aria-hidden="true">
-				<svg viewBox="0 0 500 500" class="h-full w-full" fill="none">
-					<defs><pattern id="grid" width="50" height="50" patternUnits="userSpaceOnUse"><path d="M 50 0 L 0 0 0 50" stroke="#ffffff" stroke-opacity=".07" /></pattern></defs>
-					<rect width="500" height="500" fill="url(#grid)" />
-					<path d="M -30 395 L 530 115" stroke="#d5e7a2" stroke-opacity=".35" />
-					<circle cx="195" cy="285" r="115" stroke="#d5e7a2" stroke-width="35" />
-					<circle cx="305" cy="285" r="115" stroke="#f6f5ef" stroke-width="35" />
-					<circle cx="250" cy="190" r="115" stroke="#88ac91" stroke-width="35" />
-					<path d="M 407 78 L 429 78 L 429 100 M 429 78 L 400 107" stroke="#d5e7a2" stroke-width="2" />
-				</svg>
-				<div class="absolute top-7 left-8 text-[10px] tracking-[0.25em] text-white/70">THE3 / A BETTER TOMORROW</div>
-				<div class="absolute bottom-7 left-8 text-xs text-white/70">小さな一歩を、社会の価値へ。</div>
-			</div>
+	<section id="philosophy" aria-labelledby="hero-title" class="hero">
+		<div class="hero-content">
+			<h1 id="hero-title">社会に一つでも多く<br />価値あるものを提供する。</h1>
+			<p class="hero-description">ITと業務効率化を通じて、<br />よりよい仕事、よりよい社会へ。</p>
+			<a href="/company/" class="hero-link">私たちについて<span aria-hidden="true">→</span></a>
 		</div>
+		<img class="hero-art" src="/images/value-growth.png" width="2029" height="775" alt="" fetchpriority="high" />
+	</section>
+	<section class="philosophy-note" aria-labelledby="philosophy-note-title">
+		<p class="eyebrow">PHILOSOPHY</p>
+		<h2 id="philosophy-note-title">一つの価値が、次の価値へ。</h2>
 	</section>
 </SiteLayout>
+
+<style>
+	.hero {
+		position: relative;
+		max-width: 1536px;
+		margin-inline: auto;
+		padding: 80px 5% 226px;
+		isolation: isolate;
+	}
+	.hero-content {
+		position: relative;
+		z-index: 1;
+	}
+	h1 {
+		margin: 0;
+		font-size: clamp(1.5rem, 6.35vw, 5.875rem);
+		font-weight: 600;
+		line-height: 1.37;
+		letter-spacing: -0.065em;
+	}
+	.hero-description {
+		margin-top: 40px;
+		font-size: clamp(1rem, 1.65vw, 1.5rem);
+		line-height: 1.85;
+		letter-spacing: 0.025em;
+	}
+	.hero-link {
+		display: inline-flex;
+		align-items: center;
+		gap: 24px;
+		min-height: 44px;
+		margin-top: 34px;
+		border-bottom: 1px solid currentColor;
+		font-size: clamp(0.875rem, 1.3vw, 1.125rem);
+		transition: opacity 160ms;
+	}
+	.hero-link:hover {
+		opacity: 0.65;
+	}
+	.hero-art {
+		position: absolute;
+		z-index: 0;
+		top: 180px;
+		left: 0;
+		width: 100%;
+		height: auto;
+		pointer-events: none;
+		filter: var(--artwork-filter, none);
+	}
+	.philosophy-note {
+		max-width: 1536px;
+		margin: 0 auto;
+		padding: 48px 5% 64px;
+	}
+	.eyebrow {
+		margin: 0;
+		color: var(--color-forest);
+		font-size: 12px;
+		letter-spacing: 0.25em;
+	}
+	h2 {
+		margin-top: 26px;
+		font-size: clamp(1.25rem, 2.1vw, 2rem);
+		font-weight: 400;
+		letter-spacing: 0.025em;
+	}
+	@media (max-width: 767px) {
+		.hero {
+			padding: 60px 6% 0;
+		}
+		h1 {
+			font-size: clamp(1.5rem, 6.7vw, 3.2rem);
+			line-height: 1.65;
+		}
+		.hero-description {
+			margin-top: 28px;
+			font-size: 14px;
+		}
+		.hero-link {
+			margin-top: 22px;
+		}
+		.hero-art {
+			position: relative;
+			top: auto;
+			left: auto;
+			width: calc(100% + 13.64%);
+			max-width: none;
+			margin: 12px -6.82% 0;
+		}
+		.philosophy-note {
+			padding: 44px 6% 48px;
+		}
+	}
+	@media (prefers-reduced-motion: reduce) {
+		.hero-link {
+			transition: none;
+		}
+	}
+</style>
