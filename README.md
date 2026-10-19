@@ -3,12 +3,12 @@
 Astro と Tailwind CSS 4 で構築した、the3合同会社の会社サイトです。
 静的ファイルを S3 に配置し、CloudFront 経由で `https://the3.co.jp` に公開します。
 
-インフラ構築はprivateの [the3-infra](https://github.com/the3-inc/the3-infra)、会社サイトの公開はこのリポジトリが担当します。
+インフラ構築はprivateの [infra](https://github.com/the3-inc/infra)、会社サイトの公開はこのリポジトリが担当します。
 会社・デモの配信基盤をinfra側で一括構築し、各コードリポジトリは自分の成果物だけを独立して公開します。
 
 会社ページは /、/company/、/contact/、/products/、/products/schedula/ の5つです。
 デモと技術案内は /products/schedula/demo/ と docs/、利用アプリは schedula.the3.co.jp に分けます。
-初回はinfra側でデモを公開してから会社サイトを公開します。登録フラグやデモリンク用のEnvironment変数は不要です。
+infraは準備中APIを含む配信基盤までを構築します。会社サイト・商品紹介は初回も通常更新もこのrepoの`v*`タグworkflowで公開し、デモはschedulaの`web-v*`タグworkflowで公開します。登録フラグやデモリンク用のEnvironment変数は不要です。
 [インフラの管理先](infra/README.md)と[会社サイト公開手順](docs/site-deployment.md)を参照してください。
 
 ## 開発
@@ -67,7 +67,7 @@ Astro は `output: "static"` を明示し、サーバーアダプターやフロ
 ## CI と公開
 
 PRとmainのCIはBiome・Vitest・Astro型検査と本番ビルドを実行します。
-TerraformとCloudFrontのURL処理はthe3-infraのCIで検証します。
+TerraformとCloudFrontのURL処理はinfraのCIで検証します。
 通常更新はmainへマージ → main CI成功 → 会社タグpush → 必要な承認 → 公開確認です。
 AWS基盤を変更するときはinfraリポジトリでplan/applyします。会社タグworkflowはTerraformを実行しません。
 製品紹介を追加するときはコンテンツテストとworkflowの公開URL確認も更新してください。
