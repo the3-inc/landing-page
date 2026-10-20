@@ -60,9 +60,9 @@ const currentPage = Astro.url.pathname.replace(/\/$/, "");
 	<body class="font-sans antialiased">
 		<a href="#main" class="sr-only fixed top-4 left-4 z-50 bg-forest px-6 py-3 text-on-forest focus:not-sr-only">本文へスキップ</a>
 		<header class="bg-paper">
-			<div class="mx-auto flex max-w-[1536px] flex-wrap items-center justify-between gap-4 px-[5%] py-6 md:py-7">
-				<a href="/" aria-label="the3合同会社 トップ" class="flex items-center gap-2 text-4xl tracking-tight md:text-[44px]">
-					<img src="/brand/the3-symbol.svg" width="56" height="56" alt="" class="size-12 shrink-0 [filter:var(--artwork-filter,none)] md:size-14" />
+			<div class="mx-auto flex max-w-[1440px] flex-wrap items-center justify-between gap-4 px-[5%] py-5">
+				<a href="/" aria-label="the3合同会社 トップ" class="flex items-center gap-2 font-serif text-[32px] tracking-tight">
+					<img src="/brand/the3-symbol.svg" width="40" height="40" alt="" class="size-10 shrink-0 [filter:var(--artwork-filter,none)]" />
 					the3.
 				</a>
 				<div class="contents md:flex md:flex-wrap md:items-center md:gap-5">
@@ -86,6 +86,6 @@ const currentPage = Astro.url.pathname.replace(/\/$/, "");
 			</div>
 		</header>
 		<main id="main"><slot /></main>
-		<footer class="mx-auto flex border-t border-line w-full max-w-[1536px] flex-wrap items-center justify-between gap-6 px-[5%] py-8"><p class="flex items-center gap-2 text-2xl tracking-tight"><img src="/brand/the3-symbol.svg" width="40" height="40" alt="" class="shrink-0 [filter:var(--artwork-filter,none)]" />the3. <span class="ml-3 text-xs tracking-normal">the3合同会社</span></p><p class="text-[10px] tracking-wider text-muted">© {new Date().getFullYear()} the3合同会社</p></footer>
+		<footer class="mx-auto flex border-t border-line w-full max-w-[1440px] flex-wrap items-center justify-between gap-6 px-[5%] py-8"><p class="flex items-center gap-2 font-serif text-2xl tracking-tight"><img src="/brand/the3-symbol.svg" width="40" height="40" alt="" class="shrink-0 [filter:var(--artwork-filter,none)]" />the3. <span class="ml-3 font-sans text-xs tracking-normal">the3合同会社</span></p><p class="text-[10px] tracking-wider text-muted">© {new Date().getFullYear()} the3合同会社</p></footer>
 	</body>
 </html>

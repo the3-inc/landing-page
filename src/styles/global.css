@@ -139,6 +139,7 @@
 		min-height: 44px;
 		border-bottom: 1px solid currentColor;
 		padding-block: 8px;
+		color: var(--color-forest);
 		font-size: 14px;
 		transition: opacity 160ms;
 	}

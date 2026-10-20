@@ -13,24 +13,21 @@ import SiteLayout from "../layouts/SiteLayout.astro";
 			<p class="hero-description">ITと業務効率化を通じて、<br />よりよい仕事、よりよい社会へ。</p>
 			<a href="#philosophy-note-title" class="hero-link">私たちの想い<span aria-hidden="true">↓</span></a>
 		</div>
-		<img class="hero-art" src="/images/value-growth.png" width="2029" height="775" alt="" fetchpriority="high" />
 	</section>
 	<div class="page-shell home-sections">
 		<section class="page-section home-intro" aria-labelledby="philosophy-note-title">
 			<div>
-				<p class="page-kicker">PHILOSOPHY</p>
 				<h2 id="philosophy-note-title" class="home-title">一つの価値が、<br />次の価値へ。</h2>
 			</div>
 			<div class="section-body">
 				<p>日々の仕事には、もっとよくできることが、まだあります。繰り返す作業、複雑な調整、誰か一人の経験に頼っている判断。</p>
 				<p>そうした負担を一つずつ減らし、人が考え、工夫するための時間を増やしたい。私たちは、ITと業務効率化を通じて、そのための仕組みをつくります。</p>
-				<p>目の前の仕事が少しよくなる。その積み重ねが、新しい挑戦や、次の価値につながっていく。the3は、そんな変化を社会に一つでも多く届けていきます。</p>
 			</div>
+			<img class="value-growth" src="/images/value-growth.png" width="2029" height="775" alt="" loading="lazy" decoding="async" />
 		</section>
-		<section class="page-section" aria-labelledby="approach-title">
+		<section class="page-section home-approach-section" aria-labelledby="approach-title">
 			<div>
-				<p class="page-kicker">APPROACH</p>
-				<h2 id="approach-title" class="section-title">仕事に向き合い、<br />仕組みを育てる。</h2>
+				<h2 id="approach-title" class="section-title">仕事に向き合い、仕組みを育てる。</h2>
 			</div>
 			<div class="home-approach">
 				<div>
@@ -49,7 +46,6 @@ import SiteLayout from "../layouts/SiteLayout.astro";
 		</section>
 		<section class="page-section" aria-labelledby="home-products-title">
 			<div>
-				<p class="page-kicker">PRODUCTS</p>
 				<h2 id="home-products-title" class="section-title">価値を、<br />使えるかたちに。</h2>
 			</div>
 			<article class="product-feature" aria-labelledby="home-product-name">
@@ -66,49 +62,38 @@ import SiteLayout from "../layouts/SiteLayout.astro";
 				</div>
 			</article>
 		</section>
-		<section class="page-section" aria-labelledby="home-company-title">
-			<div>
-				<p class="page-kicker">COMPANY</p>
-				<h2 id="home-company-title" class="section-title">the3について</h2>
-			</div>
-			<div class="section-body">
-				<p>ITと業務効率化に取り組む、the3合同会社。会社情報や所在地はこちらからご覧いただけます。</p>
-				<a href="/company/" class="text-link mt-6">会社案内を見る<span aria-hidden="true">→</span></a>
-			</div>
-		</section>
 		<section class="page-cta" aria-labelledby="home-contact-title">
 			<div>
-				<p class="page-kicker">CONTACT</p>
-				<h2 id="home-contact-title" class="mt-4">「もっとよくできそう」を、<br />一緒に考えませんか。</h2>
-				<p class="home-contact-description">業務の課題整理から、製品の導入・個別開発まで。まずは、今のお仕事についてお聞かせください。</p>
+				<h2 id="home-contact-title">「もっとよくできそう」を、<br />一緒に考えませんか。</h2>
 			</div>
-			<a href="/contact/" class="text-link">お問い合わせ<span aria-hidden="true">→</span></a>
+			<div>
+				<p class="home-contact-description">業務の課題整理から、製品の導入・個別開発まで。まずは、今のお仕事についてお聞かせください。</p>
+				<a href="/contact/" class="text-link mt-6">お問い合わせ<span aria-hidden="true">→</span></a>
+			</div>
 		</section>
+		<div class="home-company" aria-labelledby="home-company-title">
+			<h2 id="home-company-title" class="sr-only">the3について</h2>
+			<a href="/company/" class="text-link">会社案内を見る<span aria-hidden="true">→</span></a>
+		</div>
 	</div>
 </SiteLayout>
 
 <style>
 	.hero {
-		position: relative;
-		max-width: 1536px;
+		max-width: 1440px;
 		margin-inline: auto;
-		padding: 80px 5% 226px;
-		isolation: isolate;
-	}
-	.hero-content {
-		position: relative;
-		z-index: 1;
+		padding: clamp(64px, 7.4vw, 112px) 5% 64px;
 	}
 	h1 {
 		margin: 0;
-		font-size: clamp(1.5rem, 6.35vw, 5.875rem);
-		font-weight: 600;
-		line-height: 1.37;
-		letter-spacing: -0.065em;
+		font-size: clamp(2rem, 6.3vw, 5.5rem);
+		font-weight: 500;
+		line-height: 1.35;
+		letter-spacing: -0.045em;
 	}
 	.hero-description {
 		margin-top: 40px;
-		font-size: clamp(1rem, 1.65vw, 1.5rem);
+		font-size: clamp(1rem, 2.8vw, 2rem);
 		line-height: 1.85;
 		letter-spacing: 0.025em;
 	}
@@ -117,95 +102,144 @@ import SiteLayout from "../layouts/SiteLayout.astro";
 		align-items: center;
 		gap: 24px;
 		min-height: 44px;
-		margin-top: 34px;
+		margin-top: 36px;
 		border-bottom: 1px solid currentColor;
-		font-size: clamp(0.875rem, 1.3vw, 1.125rem);
+		color: var(--color-forest);
+		font-size: 18px;
 		transition: opacity 160ms;
 	}
 	.hero-link:hover {
 		opacity: 0.65;
 	}
-	.hero-art {
-		position: absolute;
-		z-index: 0;
-		top: 180px;
-		left: 0;
-		width: 100%;
-		height: auto;
-		pointer-events: none;
-		filter: var(--artwork-filter, none);
-	}
 	.home-sections {
-		max-width: 1536px;
-	}
-	.home-intro {
-		grid-template-columns: repeat(2, minmax(0, 1fr));
-		border-top: 0;
 		padding-top: 0;
-		padding-bottom: 80px;
 	}
 	.home-title {
-		margin-top: 26px;
-		font-size: clamp(1.75rem, 3vw, 2.75rem);
-		font-weight: 500;
+		margin: 0;
+		font-size: clamp(1.75rem, 4vw, 3rem);
+		font-weight: 400;
 		line-height: 1.6;
 		letter-spacing: -0.035em;
 		scroll-margin-top: 32px;
 	}
+	.value-growth {
+		grid-column: 1 / -1;
+		justify-self: center;
+		width: 100%;
+		max-width: 1120px;
+		height: auto;
+		filter: var(--artwork-filter, none);
+	}
+	.home-sections .page-section {
+		grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr);
+		gap: 48px 72px;
+		padding-block: 72px;
+	}
+	.home-sections .home-intro {
+		padding-block: 80px 56px;
+	}
+	.home-sections .section-title {
+		margin: 0;
+		font-size: clamp(1.75rem, 3.8vw, 2.5rem);
+		font-weight: 400;
+	}
+	.home-sections .home-approach-section {
+		grid-template-columns: minmax(0, 1fr);
+	}
 	.home-approach {
 		display: grid;
 		grid-template-columns: repeat(3, minmax(0, 1fr));
-		gap: 32px;
+		gap: 48px;
 	}
 	.home-approach h3 {
-		font-size: 20px;
-		font-weight: 500;
+		font-size: 22px;
+		font-weight: 400;
 		line-height: 1.6;
 	}
 	.home-approach p,
 	.home-contact-description {
 		margin-top: 16px;
 		color: var(--color-muted);
-		font-size: 15px;
+		font-size: 16px;
 		line-height: 2;
 	}
+	.home-sections .product-feature {
+		grid-template-columns: minmax(0, 1fr);
+		gap: 24px;
+		padding: 0;
+	}
 	.home-product-name {
-		font-size: clamp(2rem, 3.5vw, 3rem);
+		font-size: clamp(1.75rem, 3.4vw, 2.5rem);
 		font-weight: 500;
-		letter-spacing: -0.05em;
+		letter-spacing: -0.035em;
 		overflow-wrap: anywhere;
 	}
-	@media (max-width: 1023px) {
-		.home-approach {
-			grid-template-columns: minmax(0, 1fr);
-		}
+	.home-sections .section-body > p,
+	.home-sections .product-feature p {
+		font-size: 18px;
+	}
+	.home-sections .text-link {
+		font-size: 16px;
+	}
+	.home-sections .page-cta {
+		display: grid;
+		grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr);
+		gap: 72px;
+		padding-top: 64px;
+	}
+	.home-sections .page-cta h2 {
+		font-size: clamp(1.5rem, 3.3vw, 2.5rem);
+		font-weight: 400;
+	}
+	.home-contact-description {
+		max-width: 38rem;
+		margin-top: 0;
+		font-size: 18px;
+	}
+	.home-company {
+		margin-top: 48px;
 	}
 	@media (max-width: 767px) {
 		.hero {
-			padding: 60px 6% 0;
+			padding: 72px 6% 64px;
 		}
 		h1 {
-			font-size: clamp(1.5rem, 6.7vw, 3.2rem);
+			font-size: clamp(1.5rem, 6.5vw, 3rem);
 			line-height: 1.65;
 		}
 		.hero-description {
 			margin-top: 28px;
-			font-size: 14px;
+			font-size: 17px;
 		}
 		.hero-link {
-			margin-top: 22px;
+			margin-top: 28px;
+			font-size: 14px;
 		}
-		.hero-art {
-			position: relative;
-			top: auto;
-			left: auto;
-			width: calc(100% + 13.64%);
-			max-width: none;
-			margin: 12px -6.82% 0;
-		}
-		.home-intro {
+		.home-sections .page-section {
 			grid-template-columns: minmax(0, 1fr);
-			padding-bottom: 36px;
+			gap: 28px;
+			padding-block: 40px;
+		}
+		.value-growth {
+			margin-top: 8px;
+		}
+		.home-approach {
+			grid-template-columns: minmax(0, 1fr);
+			gap: 28px;
+		}
+		.home-approach h3 {
+			font-size: 20px;
+		}
+		.home-approach p,
+		.home-contact-description,
+		.home-sections .section-body > p,
+		.home-sections .product-feature p {
+			font-size: 16px;
+		}
+		.home-sections .page-cta {
+			grid-template-columns: minmax(0, 1fr);
+			gap: 24px;
+			padding-top: 40px;
 		}
 	}
 	@media (prefers-reduced-motion: reduce) {
