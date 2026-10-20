@@ -7,10 +7,11 @@
 1. Google Analyticsで会社管理のアカウントとGA4プロパティを作成する。レポートのタイムゾーンは日本、通貨は日本円にする。
 2. Webストリームを`https://the3.co.jp`で作成し、`G-`から始まる測定IDを取得する。
 3. このrepoと`the3-inc/schedula`の両方のActionsのRepository variablesに、同じ`PUBLIC_GA4_MEASUREMENT_ID`を登録する。公開IDなのでSecretsではない。schedulaはproduction承認前のbuildジョブで使うため、Environmentだけに登録しない。
-4. 拡張計測は無効にし、Googleシグナル・広告のパーソナライズ・ユーザー提供データの収集は有効にしない。フォーム・外部リンク・履歴変更の自動イベントを追加すると、意図しないURLの送信や重複計測になる。
+4. 拡張計測は項目ごとに設定する。スクロールは有効でよい。フォーム操作と「ブラウザーの履歴イベントに基づくページの変更」は無効にする。外部リンク・ファイルダウンロードは、収集されるリンク先URLに個人情報や秘密がないことを確認してから有効にする。サイト内検索・動画は導入時に必要性を判断する。Googleシグナル・広告のパーソナライズ・ユーザー提供データの収集は有効にしない。通常のページ閲覧・ユーザー・エンゲージメントは公式タグで計測する。
+   自動の`form_submit`は送信操作の検知であり、受付成功を保証しない。今回の問い合わせ完了は受付成功後の`generate_lead`だけで判定する。別名のイベントなので、併存しただけで同じイベントが二重になるわけではない。
 5. 内部トラフィックの定義を会社の実際の接続元に合わせ、まずテスト状態で確認してから除外を有効にする。開発・プレビューURLでは、タグがあってもGoogleへ送信しない。
 6. イベント単位のカスタムディメンション`lesson_id`、`operation`、`result_status`、`form_id`を登録し、`generate_lead`をキーイベントにする。
-7. 下記の受付先の接続・確認後、通常のタグ公開で両repoを配備する。hardened構成では、先にinfraのGA4用CSP変更を適用する。
+7. 通常のタグ公開で両repoを配備する。hardened構成では、先にinfraのGA4用CSP変更を適用する。受付先が未設定でもページ・デモの計測は開始できる。問い合わせ完了は、下記の受付先の接続・確認後に開始する。
 
 測定IDが未設定・不正な場合、新しい公開workflowはAWS更新前に停止する。通常のローカルビルドではIDの省略を許可し、Googleタグを入れない。IDを設定したローカルビルドも、`https://the3.co.jp`以外では計測しない。
 
@@ -52,7 +53,7 @@ API・画像・生Markdown・ライセンスファイルはHTMLページでは�
 
 ## データの範囲と検証
 
-独自イベントに氏名・メール・問い合わせ本文・デモ入力・実行識別子を入れない。`page_location`と`page_referrer`からqueryとfragmentを除く。このため、URLのUTMによるキャンペーン別分析は今回の実装対象に含めない。
+独自イベントに氏名・メール・問い合わせ本文・デモ入力・実行識別子を入れない。拡張計測で有効にする自動イベントは別に送信内容を確認し、特に`link_url`・`form_destination`等のURLを確認する。`page_location`と`page_referrer`からqueryとfragmentを除く。このため、URLのUTMによるキャンペーン別分析は今回の実装対象に含めない。
 Googleシグナルと広告パーソナライズもコードで無効化する。計測時はページ下部にGoogle Analyticsの利用と無効化方法を表示する。
 対象地域・運用に応じた同意取得が必要な場合は、測定IDを本番へ設定する前に同意の仕組みを接続する。現実装は本番ホストでIDが設定されるとCookieを使った計測を開始する。
 
@@ -66,4 +67,4 @@ Googleシグナルと広告パーソナライズもコードで無効化する�
 
 GA4への受信確認と標準レポートへの反映確認は別々に記録する。広告ブロック、同意状態、通信切断で欠測がある。IDと受付先の未設定状態・ローカルのモック成功だけでは本番計測完了としない。
 
-参照: [GA4のページビュー](https://developers.google.com/analytics/devguides/collection/ga4/views)、[generate_lead](https://developers.google.com/analytics/devguides/collection/ga4/reference/events#generate_lead)、[GA4設定](https://developers.google.com/analytics/devguides/collection/ga4/reference/config)。
+参照: [GA4のページビュー](https://developers.google.com/analytics/devguides/collection/ga4/views)、[generate_lead](https://developers.google.com/analytics/devguides/collection/ga4/reference/events#generate_lead)、[GA4設定](https://developers.google.com/analytics/devguides/collection/ga4/reference/config)、[拡張計測の個別設定](https://support.google.com/analytics/answer/9216061)。
