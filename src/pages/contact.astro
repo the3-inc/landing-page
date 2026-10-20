@@ -1,6 +1,16 @@
 ---
 // biome-ignore lint/correctness/noUnusedImports: Biome does not track component references in Astro templates.
 import SiteLayout from "../layouts/SiteLayout.astro";
+
+const endpoint = import.meta.env.PUBLIC_CONTACT_ENDPOINT || "";
+if (endpoint) {
+	const url = new URL(endpoint);
+	if (url.protocol !== "https:" || url.username || url.password || url.hash) {
+		throw new Error(
+			"PUBLIC_CONTACT_ENDPOINT must be an HTTPS form receiver URL without credentials or fragment.",
+		);
+	}
+}
 ---
 
 <SiteLayout title="お問い合わせ | the3合同会社" description="IT・業務効率化のご相談は、the3合同会社へメールまたは電話でお問い合わせください。">
@@ -12,6 +22,26 @@ import SiteLayout from "../layouts/SiteLayout.astro";
 				<p class="page-lead">IT・業務効率化について、<br />お気軽にご相談ください。</p>
 			</div>
 		</header>
+		{endpoint && (
+			<section class="page-section" aria-labelledby="contact-form-title">
+				<div><p class="page-kicker">CONTACT FORM</p><h2 id="contact-form-title" class="section-title">フォームで相談する</h2></div>
+				<div class="section-body">
+					<form id="contact-form" action={endpoint} method="post" aria-describedby="contact-data-use">
+						<fieldset class="grid gap-5">
+							<legend class="sr-only">お問い合わせ内容</legend>
+							<label class="grid gap-2">お名前（必須）<input class="rounded border border-line bg-paper p-3 text-ink" name="name" autocomplete="name" required maxlength="100" /></label>
+							<label class="grid gap-2">メールアドレス（必須）<input class="rounded border border-line bg-paper p-3 text-ink" type="email" name="email" autocomplete="email" required maxlength="254" /></label>
+							<label class="grid gap-2">お問い合わせ内容（必須）<textarea class="rounded border border-line bg-paper p-3 text-ink" name="message" rows="8" required maxlength="5000"></textarea></label>
+							<p id="contact-data-use" class="text-sm text-muted">入力内容はお問い合わせへの対応に使用し、受付サービスに送信します。アクセス解析には入力内容を送信しません。</p>
+							<button type="submit" class="justify-self-start rounded bg-forest px-6 py-3 text-on-forest disabled:opacity-50">送信する</button>
+						</fieldset>
+						<p id="contact-status" role="status" aria-live="polite" class="mt-4"></p>
+					</form>
+					<noscript><p>送信結果は受付サービスの画面で確認してください。</p></noscript>
+				</div>
+			</section>
+			<script is:inline defer src="/contact.js"></script>
+		)}
 		<section class="page-section" aria-labelledby="contact-methods-title">
 			<div>
 				<p class="page-kicker">GET IN TOUCH</p>
