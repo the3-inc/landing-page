@@ -16,6 +16,8 @@ test("builds company and product pages with shared navigation and development-on
 		// Vitest injects DEV/PROD; the CLI must use its own production flags.
 		delete buildEnv.DEV;
 		delete buildEnv.PROD;
+		delete buildEnv.PUBLIC_GA4_MEASUREMENT_ID;
+		delete buildEnv.PUBLIC_CONTACT_ENDPOINT;
 		await promisify(execFile)(
 			process.execPath,
 			[
@@ -160,6 +162,54 @@ test("builds company and product pages with shared navigation and development-on
 			"支援範囲・費用・期間は案件ごとに確認します。",
 		])
 			expect(product).toContain(text);
+	} finally {
+		await rm(outDir, { recursive: true, force: true });
+	}
+}, 30_000);
+
+test("includes one GA4 tag on every page and a configured contact form", async () => {
+	const outDir = await mkdtemp(
+		fileURLToPath(new URL("../.site-test-", import.meta.url)),
+	);
+	try {
+		const env: NodeJS.ProcessEnv = {
+			...process.env,
+			NODE_ENV: "production",
+			PUBLIC_GA4_MEASUREMENT_ID: "G-TEST123",
+			PUBLIC_CONTACT_ENDPOINT: "https://contact.example.test/submit",
+		};
+		delete env.DEV;
+		delete env.PROD;
+		await promisify(execFile)(
+			process.execPath,
+			[
+				fileURLToPath(
+					new URL("../node_modules/astro/bin/astro.mjs", import.meta.url),
+				),
+				"build",
+				"--outDir",
+				outDir,
+			],
+			{ cwd: fileURLToPath(new URL("../", import.meta.url)), env },
+		);
+		for (const path of [
+			"index.html",
+			"company/index.html",
+			"contact/index.html",
+			"products/index.html",
+			"products/schedula/index.html",
+		]) {
+			const html = await readFile(join(outDir, path), "utf8");
+			expect(html.match(/src="\/analytics.js"/g)).toHaveLength(1);
+			expect(html).toContain('data-ga4-id="G-TEST123"');
+			expect(html).not.toContain("googletagmanager.com/gtag/js");
+		}
+		const contact = await readFile(join(outDir, "contact/index.html"), "utf8");
+		expect(contact).toContain('action="https://contact.example.test/submit"');
+		for (const name of ["name", "email", "message"])
+			expect(contact).toContain(`name="${name}"`);
+		expect(contact).toContain('src="/contact.js"');
+		expect(contact).toContain('role="status"');
 	} finally {
 		await rm(outDir, { recursive: true, force: true });
 	}

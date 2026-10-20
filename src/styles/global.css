@@ -59,6 +59,9 @@
 		color: var(--color-on-forest);
 	}
 	a:focus-visible,
+	button:focus-visible,
+	input:focus-visible,
+	textarea:focus-visible,
 	select:focus-visible {
 		outline: 3px solid currentColor;
 		outline-offset: 6px;

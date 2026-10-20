@@ -75,7 +75,13 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pnpm run check
       - run: pnpm test
-      - run: pnpm build
+      - name: Build with the production measurement ID
+        run: |
+          [[ "$PUBLIC_GA4_MEASUREMENT_ID" =~ ^G-[A-Z0-9]+$ ]] || { echo "::error::Set repository variable PUBLIC_GA4_MEASUREMENT_ID"; exit 1; }
+          pnpm build
+        env:
+          PUBLIC_GA4_MEASUREMENT_ID: ${{ vars.PUBLIC_GA4_MEASUREMENT_ID }}
+          PUBLIC_CONTACT_ENDPOINT: ${{ vars.PUBLIC_CONTACT_ENDPOINT }}
       - uses: aws-actions/configure-aws-credentials@e1253824e5c10ff9df46874f81ed3ec929e19cfd # v6.3.0
         with:
           role-to-assume: ${{ env.AWS_ROLE_ARN }}

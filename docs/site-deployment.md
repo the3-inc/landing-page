@@ -58,3 +58,8 @@ productionの許可refにはブランチmainとタグv*の両方が必要です�
 S3更新はファイル単位です。失敗時はログ・実URLを確認し、同じタグの再実行か旧タグの公開を行います。
 会社コンテンツの切り戻しで共有経路のTerraformを戻す必要はありません。
 PR/main CIはフロントエンドを検証し、TerraformとURL rewriteはinfra側CIが検証します。
+
+## アクセス解析と問い合わせフォーム
+
+[GA4の設定・イベント定義・受付先の契約・受入確認](analytics.md)に従う。
+`PUBLIC_GA4_MEASUREMENT_ID`は両repoで同じRepository variableを使う。受付サービス選定後に`PUBLIC_CONTACT_ENDPOINT`をproduction Environment variableへ登録する。AWS公開先の5変数とは別に管理し、infraの自動同期対象には加えない。
