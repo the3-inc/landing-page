@@ -39,7 +39,7 @@ pnpm dev
 | Tailwindへの対応付け・会社サイトのレイアウト | `src/styles/global.css` |
 | Astro・Tailwind の設定 | `astro.config.mjs` |
 
-会社共通の値と基本スタイルは[共通プリセット](packages/brand-preset/README.md)を正本とし、会社サイトで利用しています。レジストリ配布と他リポジトリへの導入は未実施です。
+会社共通の値と基本スタイルは[共通プリセット](packages/brand-preset/README.md)を正本とし、会社サイトで利用しています。配布元はこのリポジトリのGitHub Releasesです。[新製品への導入・公開・更新手順](docs/brand-preset-distribution.md)を参照してください。
 
 トップページ、会社案内、お問い合わせ、製品一覧・詳細は、見出し・余白・細い区切り線を共通にしています。
 shift-schedulaの製品LPは、特徴、3つの公開デモ、導入・組み込み、相談の順で案内します。製品の図解とデモの構成はページ内のスタイルで管理します。
