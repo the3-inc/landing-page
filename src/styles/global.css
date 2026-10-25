@@ -1,13 +1,13 @@
 @import "tailwindcss";
 
 @theme {
-	--color-forest: #173f35;
+	--color-forest: #087f83;
 	--color-on-forest: #ffffff;
-	--color-ink: #202522;
-	--color-paper: #fafbf9;
-	--color-muted: #526058;
-	--color-line: #c7ceca;
-	--color-surface: #edf0ee;
+	--color-ink: #183638;
+	--color-paper: #fafcfc;
+	--color-muted: #52686a;
+	--color-line: #c9ddda;
+	--color-surface: #edf4f4;
 	--font-sans:
 		"Helvetica Neue", Arial, "Hiragino Kaku Gothic ProN", "Noto Sans JP",
 		sans-serif;
@@ -22,24 +22,24 @@
 	}
 	:root[data-theme="dark"] {
 		color-scheme: dark;
-		--color-forest: #acd8c2;
-		--color-on-forest: #12271e;
-		--color-ink: #edf2ef;
-		--color-paper: #121916;
-		--color-muted: #b2bfb7;
-		--color-line: #4d5c55;
-		--color-surface: #1b2420;
+		--color-forest: #8bd8d8;
+		--color-on-forest: #102023;
+		--color-ink: #edf5f5;
+		--color-paper: #101a1c;
+		--color-muted: #afc4c6;
+		--color-line: #435c60;
+		--color-surface: #19282b;
 		--artwork-filter: brightness(1.5) saturate(0.7);
 	}
 	@media (prefers-color-scheme: dark) {
 		:root:not([data-theme="light"]) {
-			--color-forest: #acd8c2;
-			--color-on-forest: #12271e;
-			--color-ink: #edf2ef;
-			--color-paper: #121916;
-			--color-muted: #b2bfb7;
-			--color-line: #4d5c55;
-			--color-surface: #1b2420;
+			--color-forest: #8bd8d8;
+			--color-on-forest: #102023;
+			--color-ink: #edf5f5;
+			--color-paper: #101a1c;
+			--color-muted: #afc4c6;
+			--color-line: #435c60;
+			--color-surface: #19282b;
 			--artwork-filter: brightness(1.5) saturate(0.7);
 		}
 	}
@@ -144,10 +144,10 @@
 		padding-block: 8px;
 		color: var(--color-forest);
 		font-size: 14px;
-		transition: opacity 160ms;
+		transition: color 160ms;
 	}
 	.text-link:hover {
-		opacity: 0.65;
+		color: var(--color-ink);
 	}
 	.details-list > div {
 		display: grid;
