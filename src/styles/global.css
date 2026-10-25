@@ -63,7 +63,7 @@
 	input:focus-visible,
 	textarea:focus-visible,
 	select:focus-visible {
-		outline: 3px solid currentColor;
+		outline: 3px solid var(--color-forest);
 		outline-offset: 6px;
 	}
 	@media (prefers-reduced-motion: reduce) {
