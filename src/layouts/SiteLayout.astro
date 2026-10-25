@@ -24,8 +24,8 @@ if (ga4Id && !/^G-[A-Z0-9]+$/.test(ga4Id)) {
 		<meta name="viewport" content="width=device-width, initial-scale=1" />
 		<meta name="description" content={description} />
 		<link rel="icon" type="image/svg+xml" href="/brand/the3-symbol.svg" />
-		<meta name="theme-color" content="#fafbf9" media={import.meta.env.DEV ? undefined : "(prefers-color-scheme: light)"} />
-		{!import.meta.env.DEV && <meta name="theme-color" content="#121916" media="(prefers-color-scheme: dark)" />}
+		<meta name="theme-color" content="#fafcfc" media={import.meta.env.DEV ? undefined : "(prefers-color-scheme: light)"} />
+		{!import.meta.env.DEV && <meta name="theme-color" content="#101a1c" media="(prefers-color-scheme: dark)" />}
 		{import.meta.env.DEV && (
 			<script is:inline>
 				const systemTheme = window.matchMedia("(prefers-color-scheme: dark)");
@@ -39,7 +39,7 @@ if (ga4Id && !/^G-[A-Z0-9]+$/.test(ga4Id)) {
 				function applyTheme() {
 					const dark = preference === "dark" || (preference === "system" && systemTheme.matches);
 					document.documentElement.dataset.theme = dark ? "dark" : "light";
-					document.querySelector('meta[name="theme-color"]').content = dark ? "#121916" : "#fafbf9";
+					document.querySelector('meta[name="theme-color"]').content = dark ? "#101a1c" : "#fafcfc";
 				}
 				applyTheme();
 				systemTheme.addEventListener("change", applyTheme);
