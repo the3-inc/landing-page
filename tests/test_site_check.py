@@ -206,6 +206,7 @@ class HttpLoaderTest(unittest.TestCase):
                             requested.clear()
                             with self.assertRaises(HTTPError) as caught:
                                 load(path)
+                            caught.exception.close()
                             self.assertEqual(caught.exception.code, status)
                             self.assertEqual(requested, [path])
             finally:
