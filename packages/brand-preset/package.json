@@ -1,0 +1,15 @@
+{
+	"name": "@the3/brand-preset",
+	"version": "0.1.0",
+	"private": true,
+	"description": "the3 company design tokens and basic styles, independent of UI frameworks",
+	"exports": {
+		"./tokens.css": "./tokens.css",
+		"./base.css": "./base.css"
+	},
+	"files": [
+		"tokens.css",
+		"base.css",
+		"README.md"
+	]
+}

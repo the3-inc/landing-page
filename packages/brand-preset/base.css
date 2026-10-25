@@ -1,0 +1,48 @@
+@import "./tokens.css";
+
+html {
+	scroll-behavior: smooth;
+}
+body {
+	margin: 0;
+	background: var(--the3-paper);
+	color: var(--the3-ink);
+	font-family: var(--the3-font-sans);
+}
+::selection {
+	background: var(--the3-accent);
+	color: var(--the3-on-accent);
+}
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible {
+	outline: 3px solid var(--the3-accent);
+	outline-offset: 6px;
+}
+.the3-button {
+	display: inline-flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: var(--the3-space-lg);
+	box-sizing: border-box;
+	min-height: 64px;
+	border: 0;
+	border-radius: var(--the3-radius);
+	padding: 1rem var(--the3-space-lg);
+	background: var(--the3-accent);
+	color: var(--the3-on-accent);
+	font: inherit;
+	line-height: 1.5;
+	text-decoration: none;
+	text-underline-offset: 4px;
+}
+.the3-button:hover {
+	text-decoration: underline;
+}
+@media (prefers-reduced-motion: reduce) {
+	html {
+		scroll-behavior: auto;
+	}
+}

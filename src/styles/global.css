@@ -1,75 +1,25 @@
 @import "tailwindcss";
+@import "../../packages/brand-preset/base.css" layer(base);
 
 @theme {
-	--color-forest: #087f83;
-	--color-on-forest: #ffffff;
-	--color-ink: #183638;
-	--color-paper: #fafcfc;
-	--color-muted: #52686a;
-	--color-line: #c9ddda;
-	--color-surface: #edf4f4;
-	--font-sans:
-		"Helvetica Neue", Arial, "Hiragino Kaku Gothic ProN", "Noto Sans JP",
-		sans-serif;
+	--color-forest: var(--the3-accent);
+	--color-on-forest: var(--the3-on-accent);
+	--color-ink: var(--the3-ink);
+	--color-paper: var(--the3-paper);
+	--color-muted: var(--the3-muted);
+	--color-line: var(--the3-line);
+	--color-surface: var(--the3-surface);
+	--font-sans: var(--the3-font-sans);
 }
 
 @layer base {
 	:root {
-		color-scheme: light dark;
-	}
-	:root[data-theme="light"] {
-		color-scheme: light;
-	}
-	:root[data-theme="dark"] {
-		color-scheme: dark;
-		--color-forest: #8bd8d8;
-		--color-on-forest: #102023;
-		--color-ink: #edf5f5;
-		--color-paper: #101a1c;
-		--color-muted: #afc4c6;
-		--color-line: #435c60;
-		--color-surface: #19282b;
-		--artwork-filter: brightness(1.5) saturate(0.7);
-	}
-	@media (prefers-color-scheme: dark) {
-		:root:not([data-theme="light"]) {
-			--color-forest: #8bd8d8;
-			--color-on-forest: #102023;
-			--color-ink: #edf5f5;
-			--color-paper: #101a1c;
-			--color-muted: #afc4c6;
-			--color-line: #435c60;
-			--color-surface: #19282b;
-			--artwork-filter: brightness(1.5) saturate(0.7);
-		}
-	}
-	html {
-		scroll-behavior: smooth;
+		--artwork-filter: var(--the3-artwork-filter);
 	}
 	body {
-		margin: 0;
 		display: grid;
 		grid-template-rows: auto 1fr auto;
 		min-height: 100dvh;
-		background: var(--color-paper);
-		color: var(--color-ink);
-	}
-	::selection {
-		background: var(--color-forest);
-		color: var(--color-on-forest);
-	}
-	a:focus-visible,
-	button:focus-visible,
-	input:focus-visible,
-	textarea:focus-visible,
-	select:focus-visible {
-		outline: 3px solid var(--color-forest);
-		outline-offset: 6px;
-	}
-	@media (prefers-reduced-motion: reduce) {
-		html {
-			scroll-behavior: auto;
-		}
 	}
 }
 
@@ -208,26 +158,6 @@
 		margin-top: 12px;
 		font-size: clamp(1rem, 2.4vw, 2rem);
 		overflow-wrap: anywhere;
-	}
-	.demo-list article {
-		padding-block: 26px;
-	}
-	.demo-list article:first-child {
-		padding-top: 0;
-	}
-	.demo-list article + article {
-		border-top: 1px solid var(--color-line);
-	}
-	.demo-list h3 {
-		font-size: 20px;
-		font-weight: 500;
-		line-height: 1.6;
-	}
-	.demo-list p {
-		margin-top: 12px;
-		color: var(--color-muted);
-		font-size: 15px;
-		line-height: 1.9;
 	}
 	.section-body > p + p {
 		margin-top: 20px;
