@@ -50,6 +50,14 @@ python3 /tmp/the3-design-source/scripts/install_brand_preset.py \
 **展開された4ファイルと `preset.lock.json` を製品のGitへコミットします。**
 取得作業を通常のCI・Dockerビルドへ追加しないでください。固定情報とCSSを同じ変更としてレビューします。
 
+**最初のコミット前に、製品の `.gitattributes` へ次を追加してください。**
+取り込み先を変更した場合はパスも合わせます。Gitの改行変換でCSSやREADMEが書き換わるとSHA-256が一致しなくなるため、
+このディレクトリは配布時のバイト列を保持します。`core.autocrlf=true` の環境でも同じ固定情報を利用できます。
+
+```gitattributes
+demo/brand-preset/** -text
+```
+
 HTMLから使う場合は、2つのCSSの相対位置を維持して配信します。
 
 ```html
