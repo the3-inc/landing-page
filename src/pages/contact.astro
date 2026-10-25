@@ -14,26 +14,26 @@ if (endpoint) {
 ---
 
 <SiteLayout title="お問い合わせ | the3合同会社" description="IT・業務効率化のご相談は、the3合同会社へメールまたは電話でお問い合わせください。">
-	<div class="page-shell">
-		<header class="page-heading">
+	<div class="the3-page-shell">
+		<header class="the3-page-heading">
 			<div>
-				<p class="page-kicker">CONTACT</p>
-				<h1 id="contact-title" class="page-title">お問い合わせ</h1>
-				<p class="page-lead">IT・業務効率化について、<br />お気軽にご相談ください。</p>
+				<p class="the3-page-kicker">CONTACT</p>
+				<h1 id="contact-title" class="the3-page-title">お問い合わせ</h1>
+				<p class="the3-page-lead">IT・業務効率化について、<br />お気軽にご相談ください。</p>
 			</div>
 		</header>
 		{endpoint && (
-			<section class="page-section" aria-labelledby="contact-form-title">
-				<div><p class="page-kicker">CONTACT FORM</p><h2 id="contact-form-title" class="section-title">フォームで相談する</h2></div>
-				<div class="section-body">
+			<section class="the3-page-section" aria-labelledby="contact-form-title">
+				<div><p class="the3-page-kicker">CONTACT FORM</p><h2 id="contact-form-title" class="the3-section-title">フォームで相談する</h2></div>
+				<div class="the3-section-body">
 					<form id="contact-form" action={endpoint} method="post" aria-describedby="contact-data-use">
 						<fieldset class="grid gap-5">
 							<legend class="sr-only">お問い合わせ内容</legend>
-							<label class="grid gap-2">お名前（必須）<input class="rounded border border-line bg-paper p-3 text-ink" name="name" autocomplete="name" required maxlength="100" /></label>
-							<label class="grid gap-2">メールアドレス（必須）<input class="rounded border border-line bg-paper p-3 text-ink" type="email" name="email" autocomplete="email" required maxlength="254" /></label>
-							<label class="grid gap-2">お問い合わせ内容（必須）<textarea class="rounded border border-line bg-paper p-3 text-ink" name="message" rows="8" required maxlength="5000"></textarea></label>
+							<label class="grid gap-2">お名前（必須）<input class="p-3" name="name" autocomplete="name" required maxlength="100" /></label>
+							<label class="grid gap-2">メールアドレス（必須）<input class="p-3" type="email" name="email" autocomplete="email" required maxlength="254" /></label>
+							<label class="grid gap-2">お問い合わせ内容（必須）<textarea class="p-3" name="message" rows="8" required maxlength="5000"></textarea></label>
 							<p id="contact-data-use" class="text-sm text-muted">入力内容はお問い合わせへの対応に使用し、受付サービスに送信します。アクセス解析には入力内容を送信しません。</p>
-							<button type="submit" class="justify-self-start rounded bg-forest px-6 py-3 text-on-forest disabled:opacity-50">送信する</button>
+							<button type="submit" class="the3-button the3-button-compact justify-self-start">送信する</button>
 						</fieldset>
 						<p id="contact-status" role="status" aria-live="polite" class="mt-4"></p>
 					</form>
@@ -42,19 +42,19 @@ if (endpoint) {
 			</section>
 			<script is:inline defer src="/contact.js"></script>
 		)}
-		<section class="page-section" aria-labelledby="contact-methods-title">
+		<section class="the3-page-section" aria-labelledby="contact-methods-title">
 			<div>
-				<p class="page-kicker">GET IN TOUCH</p>
-				<h2 id="contact-methods-title" class="section-title">ご相談窓口</h2>
+				<p class="the3-page-kicker">GET IN TOUCH</p>
+				<h2 id="contact-methods-title" class="the3-section-title">ご相談窓口</h2>
 			</div>
-			<div class="section-body">
+			<div class="the3-section-body">
 				<div class="contact-option">
-					<h3 class="page-kicker">01 / メール</h3>
-					<a href="mailto:omitsuhashi@the3.co.jp" class="text-link contact-address">omitsuhashi@the3.co.jp</a>
+					<h3 class="the3-page-kicker">01 / メール</h3>
+					<a href="mailto:omitsuhashi@the3.co.jp" class="the3-text-link contact-address">omitsuhashi@the3.co.jp</a>
 				</div>
 				<div class="contact-option">
-					<h3 class="page-kicker">02 / 電話</h3>
-					<a href="tel:08067462024" class="text-link contact-address">080-6746-2024</a>
+					<h3 class="the3-page-kicker">02 / 電話</h3>
+					<a href="tel:08067462024" class="the3-text-link contact-address">080-6746-2024</a>
 				</div>
 			</div>
 		</section>

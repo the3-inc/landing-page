@@ -35,11 +35,11 @@ pnpm dev
 | ページの追加 | `src/pages/` |
 | そのまま配信する画像など | `public/` |
 | 共通ヘッダー・フッター・メタデータ・開発用テーマ選択 | `src/layouts/SiteLayout.astro` |
-| 会社共通の色・書体・テーマ・基本ボタン | `packages/brand-preset/` |
+| 会社・製品共通のグローバルCSS（配色・書体・フォーム・ボタン・ページの基本配置） | `packages/brand-preset/` |
 | Tailwindへの対応付け・会社サイトのレイアウト | `src/styles/global.css` |
 | Astro・Tailwind の設定 | `astro.config.mjs` |
 
-会社共通の値と基本スタイルは[共通プリセット](packages/brand-preset/README.md)を正本とし、会社サイトで利用しています。配布元はこのリポジトリのGitHub Releasesです。[新製品への導入・公開・更新手順](docs/brand-preset-distribution.md)を参照してください。
+LP・デモ・技術案内で共有するグローバルCSSは[共通プリセット](packages/brand-preset/README.md)を正本とし、会社サイトで利用しています。配布元はこのリポジトリのGitHub Releasesです。[新製品への導入・公開・更新手順](docs/brand-preset-distribution.md)を参照してください。
 
 トップページ、会社案内、お問い合わせ、製品一覧・詳細は、見出し・余白・細い区切り線を共通にしています。
 shift-schedulaの製品LPは、特徴、3つの公開デモ、導入・組み込み、相談の順で案内します。製品の図解とデモの構成はページ内のスタイルで管理します。

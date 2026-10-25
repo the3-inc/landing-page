@@ -1,39 +1,49 @@
-# the3 共通デザインプリセット
+# the3 共通CSSライブラリ
 
-会社と製品で共有する色・本文書体・余白・テーマ・フォーカス表示・主要ボタンの正本です。
-Astro・Tailwind・Reactなどに依存しないCSSを、このリポジトリのGitHub Releasesから配布します。
+会社サイトと各製品リポジトリのLP・デモ・技術案内で共有する、グローバルCSSの正本です。
+Astro・Tailwind・Reactなどに依存せず、`packages/brand-preset/`から`@the3/brand-preset`として配布します。
+デモ用の素材やページテンプレートではありません。
 
-- 管理場所: `the3-inc/landing-page` の `packages/brand-preset/`
-- パッケージ名: `@the3/brand-preset`
-- バージョン: `package.json` の `version`
-- 配布タグ: `brand-preset-v0.1.0` の形式
-- 配布物: `the3-brand-preset-0.1.0.tgz` と `SHA256SUMS`
-- 会社サイト: 同じリポジトリの `base.css` を直接import
-- 製品: 配布版とSHA-256を固定し、自身の成果物へ取り込む
-
-[配布・新製品への導入・更新・切り戻し手順](https://github.com/the3-inc/landing-page/blob/brand-preset-v0.1.0/docs/brand-preset-distribution.md)を参照してください。
-`private: true` はnpmレジストリへの誤公開を防ぐ設定です。GitHub Releaseのアーカイブ配布・インストールには影響しません。
-
-## CSSの入口
+## 読み込み
 
 ```css
-/* 本文の既定、テーマ、フォーカス、主要ボタンを利用 */
 @import "@the3/brand-preset/base.css";
-
-/* 既存の画面構成を保ち、値だけを利用する場合はこちら */
-/* @import "@the3/brand-preset/tokens.css"; */
 ```
 
-パッケージ名の解決はビルドツールが担当します。プレーンHTMLでは展開した2つのCSSを同じディレクトリに置き、
-`base.css` を `link` 要素で読み込みます。Node.jsを使わない製品向けの取得・検証ツールも配布元に用意しています。
+プレーンHTMLは、展開した`base.css`と`tokens.css`を同じディレクトリに置き、全ページから読み込みます。
+製品固有CSSはその後に読み込みます。LP用CSSをデモや技術案内から読み込む必要はありません。
 
-`base.css` は本文の色・背景・書体・marginの既定、選択色、フォーカス、スクロール設定を持ちます。
-ボタンは `class="the3-button"` で利用します。ヘッダーやページレイアウト、本文の文字サイズ、機能、認証、計測、公開処理は含みません。
+```html
+<link rel="stylesheet" href="/brand-preset/base.css" />
+<link rel="stylesheet" href="/styles/global.css" />
+```
 
-既定はOSのテーマへ追従します。固定する場合は `html` の `data-theme="light"` / `"dark"` を使います。
-テーマ切り替えUIや保存処理は各製品が担当します。アクセントを上書きする場合は、各テーマの `--the3-accent` と
-`--the3-on-accent` を組にして設定し、文字・ボタン・フォーカスのコントラストを確認してください。
+TailwindではPreflightの後に`base.css`を`layer(base)`へimportします。
+値だけが必要な既存画面では`tokens.css`のみを使えますが、会社・製品のWebページは`base.css`を共通の入口にします。
 
-会社のヘッダー・会社ロゴの扱いは会社サイト、製品の機能・図解・メニュー・画面密度は製品側で管理します。
-会社ロゴの正本と使用方針は、このリポジトリの `docs/brand-assets.md` にあります。
-稼働中の会社サイトの「最新CSS」へ依存せず、テンプレートを再コピーして更新する運用にも戻しません。
+## 共通にするもの
+
+- `--the3-*`: 色、本文書体、余白、角丸、ライト・ダークテーマ。
+- グローバルな既定: 本文、box-sizing、見出しの書体・行間、リンク、フォーム、選択色、フォーカス、動きを減らす設定。
+- `the3-button`と`the3-button-compact`: 主要操作。後者は前者と併用する、操作画面向けの44px以上のボタン。
+- `the3-container`、`the3-site-header`、`the3-skip-link`: ページの幅、ヘッダーの配置・配色、本文への移動。
+- `the3-page-shell`、`the3-page-heading`、`the3-page-kicker`、`the3-page-title`、`the3-page-lead`: ページの余白と見出し。
+- `the3-page-section`、`the3-section-title`、`the3-section-body`、`the3-text-link`、`the3-details-list`、`the3-page-cta`: 区切り線、本文と導線の基本スタイル。
+
+共通クラスは`the3-`で始め、製品の既存クラスとの衝突を抑えます。
+会社サイトもこの実装を使います。値や基本スタイルを各サイトで再定義せず、製品固有の構成・図解・画面密度・状態色だけを製品側に残します。
+会社ロゴ・製品名・メニュー内容・機能・認証・計測・テーマ切り替えUIは含みません。
+
+既定はOSのテーマへ追従します。`html[data-theme="light"]` / `"dark"`で固定できますが、
+通常の会社・製品間の遷移では同じテーマ方針を使います。独自の背景やテーマ固定でページ全体の見た目を変えないでください。
+注意・エラー・役割など、意味を持つ色は各製品で文字色と背景色を組にし、両テーマで確認します。
+
+## 配布と更新
+
+GitHub Releasesの`brand-preset-vX.Y.Z`から`.tgz`と`SHA256SUMS`を配布し、各製品は版とSHA-256を固定して取り込みます。
+製品側の保管場所は`web/vendor/brand-preset/`など、全Webページから共有できる場所にします。
+`demo/`の下へ置いたり、ページごとに複製したり、稼働中の会社サイトから最新CSSを取得したりしません。
+`private: true`はnpmレジストリへの誤公開を防ぐ設定で、アーカイブ配布には影響しません。
+
+[導入・更新・切り戻し手順](https://github.com/the3-inc/landing-page/blob/main/docs/brand-preset-distribution.md)を参照してください。
+0.2.0はグローバルなフォームの既定と共通クラスを追加するため、既存製品は取り込み後に両テーマと操作画面を確認してください。

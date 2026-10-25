@@ -8,33 +8,33 @@ const mapUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURICompo
 ---
 
 <SiteLayout title="会社案内 | the3合同会社" description="the3合同会社の会社情報・事業内容・所在地・アクセスをご案内します。">
-	<div id="company" class="page-shell">
-		<header class="page-heading">
+	<div id="company" class="the3-page-shell">
+		<header class="the3-page-heading">
 			<div>
-				<p class="page-kicker">COMPANY</p>
-				<h1 id="company-title" class="page-title">会社案内</h1>
-				<p class="page-lead">会社情報とアクセス</p>
+				<p class="the3-page-kicker">COMPANY</p>
+				<h1 id="company-title" class="the3-page-title">会社案内</h1>
+				<p class="the3-page-lead">会社情報とアクセス</p>
 			</div>
 			<img src="/brand/the3-symbol.svg" width="180" height="180" class="brand-symbol" alt="" />
 		</header>
-		<section class="page-section" aria-labelledby="profile-title">
+		<section class="the3-page-section" aria-labelledby="profile-title">
 			<div>
-				<p class="page-kicker">01 / PROFILE</p>
-				<h2 id="profile-title" class="section-title">会社概要</h2>
+				<p class="the3-page-kicker">01 / PROFILE</p>
+				<h2 id="profile-title" class="the3-section-title">会社概要</h2>
 			</div>
-			<dl class="details-list">
+			<dl class="the3-details-list">
 				<div><dt>会社名</dt><dd>the3合同会社</dd></div>
 				<div><dt>事業内容</dt><dd>IT・業務効率化</dd></div>
 				<div id="access">
 					<dt>所在地</dt>
-					<dd>{address}<br /><a href={mapUrl} target="_blank" rel="noopener noreferrer" class="text-link mt-3">Google マップで見る <span class="sr-only">（新しいタブで開きます）</span><span aria-hidden="true">↗</span></a></dd>
+					<dd>{address}<br /><a href={mapUrl} target="_blank" rel="noopener noreferrer" class="the3-text-link mt-3">Google マップで見る <span class="sr-only">（新しいタブで開きます）</span><span aria-hidden="true">↗</span></a></dd>
 				</div>
 				<div><dt>電話番号</dt><dd><a href="tel:08067462024" class="inline-block py-2 hover:underline underline-offset-4">080-6746-2024</a></dd></div>
 			</dl>
 		</section>
-		<section class="page-cta" aria-labelledby="company-contact-title">
+		<section class="the3-page-cta" aria-labelledby="company-contact-title">
 			<h2 id="company-contact-title">IT・業務効率化のご相談を。</h2>
-			<a href="/contact/" class="text-link">お問い合わせ<span aria-hidden="true">→</span></a>
+			<a href="/contact/" class="the3-text-link">お問い合わせ<span aria-hidden="true">→</span></a>
 		</section>
 	</div>
 </SiteLayout>
