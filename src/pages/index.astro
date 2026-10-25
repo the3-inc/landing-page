@@ -7,11 +7,11 @@ import SiteLayout from "../layouts/SiteLayout.astro";
 	title="the3合同会社 | 社会に一つでも多く価値あるものを提供する"
 	description="the3合同会社は、ITと業務効率化を通じて、社会に一つでも多く価値あるものを提供します。"
 >
-	<section id="philosophy" aria-labelledby="hero-title" class="hero">
-		<div class="hero-content">
+	<section id="philosophy" aria-labelledby="hero-title" class="the3-container hero">
+		<div>
 			<h1 id="hero-title">社会に一つでも多く<br />価値あるものを提供する。</h1>
 			<p class="hero-description">ITと業務効率化を通じて、<br />よりよい仕事、よりよい社会へ。</p>
-			<a href="#philosophy-note-title" class="hero-link">私たちの想い<span aria-hidden="true">↓</span></a>
+			<a href="#philosophy-note-title" class="the3-text-link hero-link">私たちの想い<span aria-hidden="true">↓</span></a>
 		</div>
 	</section>
 	<div class="the3-page-shell home-sections">
@@ -80,14 +80,10 @@ import SiteLayout from "../layouts/SiteLayout.astro";
 
 <style>
 	.hero {
-		max-width: 1440px;
-		margin-inline: auto;
 		padding: clamp(64px, 7.4vw, 112px) 5% 64px;
 	}
 	h1 {
-		margin: 0;
 		font-size: clamp(2rem, 6.3vw, 5.5rem);
-		font-weight: 500;
 		line-height: 1.35;
 		letter-spacing: -0.045em;
 	}
@@ -99,28 +95,18 @@ import SiteLayout from "../layouts/SiteLayout.astro";
 		letter-spacing: 0.025em;
 	}
 	.hero-link {
-		display: inline-flex;
-		align-items: center;
 		gap: 24px;
-		min-height: 44px;
 		margin-top: 36px;
-		border-bottom: 1px solid currentColor;
-		color: var(--color-forest);
+		padding-block: 0;
 		font-size: 18px;
-		transition: color 160ms;
-	}
-	.hero-link:hover {
-		color: var(--color-ink);
 	}
 	.home-sections {
 		padding-top: 0;
 	}
 	.home-title {
-		margin: 0;
 		font-size: clamp(1.75rem, 4vw, 3rem);
 		font-weight: 400;
 		line-height: 1.6;
-		letter-spacing: -0.035em;
 		scroll-margin-top: 32px;
 	}
 	.value-growth {
@@ -129,7 +115,7 @@ import SiteLayout from "../layouts/SiteLayout.astro";
 		width: 100%;
 		max-width: 1120px;
 		height: auto;
-		filter: var(--artwork-filter, none);
+		filter: var(--the3-artwork-filter);
 	}
 	.home-sections .the3-page-section {
 		grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr);
@@ -171,8 +157,6 @@ import SiteLayout from "../layouts/SiteLayout.astro";
 	}
 	.home-product-name {
 		font-size: clamp(1.75rem, 3.4vw, 2.5rem);
-		font-weight: 500;
-		letter-spacing: -0.035em;
 		overflow-wrap: anywhere;
 	}
 	.home-sections .the3-section-body > p,
@@ -241,11 +225,6 @@ import SiteLayout from "../layouts/SiteLayout.astro";
 			grid-template-columns: minmax(0, 1fr);
 			gap: 24px;
 			padding-top: 40px;
-		}
-	}
-	@media (prefers-reduced-motion: reduce) {
-		.hero-link {
-			transition: none;
 		}
 	}
 </style>

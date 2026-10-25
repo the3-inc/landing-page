@@ -71,7 +71,7 @@ if (ga4Id && !/^G-[A-Z0-9]+$/.test(ga4Id)) {
 		<header>
 			<div class="the3-site-header">
 				<a href="/" aria-label="the3合同会社 トップ" class="flex items-center gap-2 font-serif text-[32px] tracking-tight">
-					<img src="/brand/the3-symbol.svg" width="40" height="40" alt="" class="size-10 shrink-0 [filter:var(--artwork-filter,none)]" />
+					<img src="/brand/the3-symbol.svg" width="40" height="40" alt="" class="size-10 shrink-0 [filter:var(--the3-artwork-filter)]" />
 					the3.
 				</a>
 				<div class="contents md:flex md:flex-wrap md:items-center md:gap-5">
@@ -95,7 +95,7 @@ if (ga4Id && !/^G-[A-Z0-9]+$/.test(ga4Id)) {
 			</div>
 		</header>
 		<main id="main"><slot /></main>
-		<footer class="the3-container flex border-t border-line flex-wrap items-center justify-between gap-6 py-8"><p class="flex items-center gap-2 font-serif text-2xl tracking-tight"><img src="/brand/the3-symbol.svg" width="40" height="40" alt="" class="shrink-0 [filter:var(--artwork-filter,none)]" />the3. <span class="ml-3 font-sans text-xs tracking-normal">the3合同会社</span></p><p class="text-[10px] tracking-wider text-muted">© {new Date().getFullYear()} the3合同会社</p></footer>
+		<footer class="the3-container flex border-t border-line flex-wrap items-center justify-between gap-6 py-8"><p class="flex items-center gap-2 font-serif text-2xl tracking-tight"><img src="/brand/the3-symbol.svg" width="40" height="40" alt="" class="shrink-0 [filter:var(--the3-artwork-filter)]" />the3. <span class="ml-3 font-sans text-xs tracking-normal">the3合同会社</span></p><p class="text-[10px] tracking-wider text-muted">© {new Date().getFullYear()} the3合同会社</p></footer>
 		{import.meta.env.PROD && ga4Id && (
 			<aside aria-label="アクセス解析について" class="the3-container pb-8 text-xs text-muted">
 				<p>当サイトではGoogle Analyticsを利用し、Cookie等を用いて閲覧状況や利用時間を計測します。お問い合わせの入力内容はアクセス解析に送信しません。</p>
