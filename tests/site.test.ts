@@ -103,7 +103,7 @@ test("builds company and product pages with shared navigation and development-on
 		);
 		expect(company).toContain('rel="noopener noreferrer"');
 		expect(contact).toContain("<title>お問い合わせ | the3合同会社</title>");
-		expect(contact).toContain('href="mailto:omitsuhashi@the3-o.com"');
+		expect(contact).toContain('href="mailto:omitsuhashi@the3.co.jp"');
 		expect(contact).toContain('href="tel:08067462024"');
 		expect(contact).not.toContain('id="access"');
 		const productIndex = await readFile(
