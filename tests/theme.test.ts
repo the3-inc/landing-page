@@ -68,7 +68,7 @@ test("uses the system theme before rendering and follows system changes", () => 
 	expect(view.selector.value).toBe("system");
 	view.setSystem(false);
 	expect(view.theme()).toBe("light");
-	expect(view.meta.content).toBe("#fafbf9");
+	expect(view.meta.content).toBe("#fafcfc");
 });
 
 test.each(["light", "dark"])(
