@@ -178,10 +178,13 @@ test("builds company and product pages with shared navigation and development-on
 		for (const id of ["demand", "consecutive_days", "verify"])
 			expect(product).toContain(`href="/products/schedula/demo/#${id}"`);
 		expect(product).toContain('href="/products/schedula/docs/"');
+		expect(product).toContain('href="https://github.com/the3-inc/schedula"');
+		expect(product).toContain(
+			'href="https://pypi.org/project/shift-schedula/0.2.0/"',
+		);
 		for (const text of [
 			"固定日付の架空データを使います。",
 			"検証成功と需要の完全充足、最適性はそれぞれ区別します。",
-			"PyPI公開やアプリの提供開始を案内するものではありません。",
 			"支援範囲・費用・期間は案件ごとに確認します。",
 		])
 			expect(product).toContain(text);
