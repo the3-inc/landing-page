@@ -80,6 +80,17 @@ HTMLから使う場合は、2つのCSSの相対位置を維持して配信しま
 取り込んだファイルのSHA-256を固定情報と照合し、不一致ならビルドを失敗させます。
 HTMLの言語・viewport、本文へ移動するリンク、会社・製品紹介・相談へ戻る導線も各製品で用意します。
 
+## 配布元リポジトリの会社サイトでの利用
+
+会社サイトも公開済みの0.2.0を利用します。`package.json`の`@the3/brand-preset`に
+`https://github.com/the3-inc/landing-page/releases/download/brand-preset-v0.2.0/the3-brand-preset-0.2.0.tgz`を指定し、
+`pnpm-lock.yaml`のintegrityで配布物を固定します。`src/styles/global.css`はパッケージの`base.css`を`layer(base)`へimportします。
+`packages/brand-preset/`は配布元のソースで、会社サイトからの直接参照や利用側へのCSSコピーには使いません。
+会社のヘッダー・フッターも共通の配置クラスを使い、製品固有ではない基本スタイルを重ねて定義しません。
+
+配布元ソースの更新と会社サイトの採用は分け、新しいReleaseの公開後に依存URLとlockfileを更新します。
+会社・製品とも同じ版を採用し、両テーマと狭い画面を確認します。通常の会社ビルドへ独自の取得scriptは追加しません。
+
 ## 製品リポジトリでの配置
 
 ```text
