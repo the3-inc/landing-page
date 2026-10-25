@@ -170,7 +170,19 @@ test("builds company and product pages with shared navigation and development-on
 				.filter((file) => file.endsWith(".css"))
 				.map((file) => readFile(join(outDir, "_astro", file), "utf8")),
 		);
-		expect(styles.join("")).toContain(".bg-forest");
+		for (const selector of [
+			".the3-site-header",
+			".the3-page-shell",
+			".the3-page-section",
+			".the3-button-compact",
+			".the3-skip-link",
+		])
+			expect(styles.join("")).toContain(selector);
+		for (const html of [...pages, productIndex, product]) {
+			expect(html).toContain('class="the3-site-header"');
+			expect(html).toContain('class="the3-skip-link"');
+		}
+		expect(styles.join("")).toContain(".the3-button");
 		expect(styles.join("")).toContain("--color-forest");
 		expect(styles.join("")).not.toContain("light-dark(");
 		expect(styles.join("")).not.toContain("scroll-snap");

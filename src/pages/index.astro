@@ -14,20 +14,20 @@ import SiteLayout from "../layouts/SiteLayout.astro";
 			<a href="#philosophy-note-title" class="hero-link">私たちの想い<span aria-hidden="true">↓</span></a>
 		</div>
 	</section>
-	<div class="page-shell home-sections">
-		<section class="page-section home-intro" aria-labelledby="philosophy-note-title">
+	<div class="the3-page-shell home-sections">
+		<section class="the3-page-section home-intro" aria-labelledby="philosophy-note-title">
 			<div>
 				<h2 id="philosophy-note-title" class="home-title">一つの価値が、<br />次の価値へ。</h2>
 			</div>
-			<div class="section-body">
+			<div class="the3-section-body">
 				<p>日々の仕事には、もっとよくできることが、まだあります。繰り返す作業、複雑な調整、誰か一人の経験に頼っている判断。</p>
 				<p>そうした負担を一つずつ減らし、人が考え、工夫するための時間を増やしたい。私たちは、ITと業務効率化を通じて、そのための仕組みをつくります。</p>
 			</div>
 			<img class="value-growth" src="/images/value-growth.png" width="2029" height="775" alt="" loading="lazy" decoding="async" />
 		</section>
-		<section class="page-section home-approach-section" aria-labelledby="approach-title">
+		<section class="the3-page-section home-approach-section" aria-labelledby="approach-title">
 			<div>
-				<h2 id="approach-title" class="section-title">仕事に向き合い、仕組みを育てる。</h2>
+				<h2 id="approach-title" class="the3-section-title">仕事に向き合い、仕組みを育てる。</h2>
 			</div>
 			<div class="home-approach">
 				<div>
@@ -44,9 +44,9 @@ import SiteLayout from "../layouts/SiteLayout.astro";
 				</div>
 			</div>
 		</section>
-		<section class="page-section" aria-labelledby="home-products-title">
+		<section class="the3-page-section" aria-labelledby="home-products-title">
 			<div>
-				<h2 id="home-products-title" class="section-title">価値を、<br />使えるかたちに。</h2>
+				<h2 id="home-products-title" class="the3-section-title">価値を、<br />使えるかたちに。</h2>
 			</div>
 			<article class="product-feature" aria-labelledby="home-product-name">
 				<div>
@@ -56,13 +56,13 @@ import SiteLayout from "../layouts/SiteLayout.astro";
 				<div>
 					<p>技能、勤務可能時間、必要人数、勤務ルール。現場の条件を整理し、担当配置と勤務計画を作成します。導入や業務システムへの組み込みもご相談いただけます。</p>
 					<div class="mt-6 flex flex-col items-start gap-4">
-						<a href="/products/schedula/" class="text-link">shift-schedulaについて<span aria-hidden="true">→</span></a>
-						<a href="/products/" class="text-link">製品・導入支援を見る<span aria-hidden="true">→</span></a>
+						<a href="/products/schedula/" class="the3-text-link">shift-schedulaについて<span aria-hidden="true">→</span></a>
+						<a href="/products/" class="the3-text-link">製品・導入支援を見る<span aria-hidden="true">→</span></a>
 					</div>
 				</div>
 			</article>
 		</section>
-		<section class="page-cta" aria-labelledby="home-contact-title">
+		<section class="the3-page-cta" aria-labelledby="home-contact-title">
 			<div>
 				<h2 id="home-contact-title">「もっとよくできそう」を、<br />一緒に考えませんか。</h2>
 			</div>
@@ -73,7 +73,7 @@ import SiteLayout from "../layouts/SiteLayout.astro";
 		</section>
 		<section class="home-company" aria-labelledby="home-company-title">
 			<h2 id="home-company-title" class="sr-only">the3について</h2>
-			<a href="/company/" class="text-link">会社案内を見る<span aria-hidden="true">→</span></a>
+			<a href="/company/" class="the3-text-link">会社案内を見る<span aria-hidden="true">→</span></a>
 		</section>
 	</div>
 </SiteLayout>
@@ -131,7 +131,7 @@ import SiteLayout from "../layouts/SiteLayout.astro";
 		height: auto;
 		filter: var(--artwork-filter, none);
 	}
-	.home-sections .page-section {
+	.home-sections .the3-page-section {
 		grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr);
 		gap: 48px 72px;
 		padding-block: 72px;
@@ -139,7 +139,7 @@ import SiteLayout from "../layouts/SiteLayout.astro";
 	.home-sections .home-intro {
 		padding-block: 80px 56px;
 	}
-	.home-sections .section-title {
+	.home-sections .the3-section-title {
 		margin: 0;
 		font-size: clamp(1.75rem, 3.8vw, 2.5rem);
 		font-weight: 400;
@@ -175,20 +175,20 @@ import SiteLayout from "../layouts/SiteLayout.astro";
 		letter-spacing: -0.035em;
 		overflow-wrap: anywhere;
 	}
-	.home-sections .section-body > p,
+	.home-sections .the3-section-body > p,
 	.home-sections .product-feature p {
 		font-size: 18px;
 	}
-	.home-sections .text-link {
+	.home-sections .the3-text-link {
 		font-size: 16px;
 	}
-	.home-sections .page-cta {
+	.home-sections .the3-page-cta {
 		display: grid;
 		grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr);
 		gap: 72px;
 		padding-top: 64px;
 	}
-	.home-sections .page-cta h2 {
+	.home-sections .the3-page-cta h2 {
 		font-size: clamp(1.5rem, 3.3vw, 2.5rem);
 		font-weight: 400;
 	}
@@ -216,7 +216,7 @@ import SiteLayout from "../layouts/SiteLayout.astro";
 			margin-top: 28px;
 			font-size: 14px;
 		}
-		.home-sections .page-section {
+		.home-sections .the3-page-section {
 			grid-template-columns: minmax(0, 1fr);
 			gap: 28px;
 			padding-block: 40px;
@@ -233,11 +233,11 @@ import SiteLayout from "../layouts/SiteLayout.astro";
 		}
 		.home-approach p,
 		.home-contact-description,
-		.home-sections .section-body > p,
+		.home-sections .the3-section-body > p,
 		.home-sections .product-feature p {
 			font-size: 16px;
 		}
-		.home-sections .page-cta {
+		.home-sections .the3-page-cta {
 			grid-template-columns: minmax(0, 1fr);
 			gap: 24px;
 			padding-top: 40px;

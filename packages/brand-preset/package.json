@@ -1,8 +1,8 @@
 {
 	"name": "@the3/brand-preset",
-	"version": "0.1.0",
+	"version": "0.2.0",
 	"private": true,
-	"description": "the3 company design tokens and basic styles, independent of UI frameworks",
+	"description": "the3 shared global CSS for company and product websites",
 	"exports": {
 		"./tokens.css": "./tokens.css",
 		"./base.css": "./base.css"
