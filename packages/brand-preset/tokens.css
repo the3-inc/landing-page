@@ -1,0 +1,44 @@
+:root {
+	--the3-accent: #087f83;
+	--the3-on-accent: #ffffff;
+	--the3-ink: #183638;
+	--the3-paper: #fafcfc;
+	--the3-muted: #52686a;
+	--the3-line: #c9ddda;
+	--the3-surface: #edf4f4;
+	--the3-font-sans:
+		"Helvetica Neue", Arial, "Hiragino Kaku Gothic ProN", "Noto Sans JP",
+		sans-serif;
+	--the3-space-sm: 0.5rem;
+	--the3-space-md: 1.5rem;
+	--the3-space-lg: 2rem;
+	--the3-radius: 0.25rem;
+	--the3-artwork-filter: none;
+	color-scheme: light dark;
+}
+:root[data-theme="light"] {
+	color-scheme: light;
+}
+:root[data-theme="dark"] {
+	color-scheme: dark;
+	--the3-accent: #8bd8d8;
+	--the3-on-accent: #102023;
+	--the3-ink: #edf5f5;
+	--the3-paper: #101a1c;
+	--the3-muted: #afc4c6;
+	--the3-line: #435c60;
+	--the3-surface: #19282b;
+	--the3-artwork-filter: brightness(1.5) saturate(0.7);
+}
+@media (prefers-color-scheme: dark) {
+	:root:not([data-theme="light"]) {
+		--the3-accent: #8bd8d8;
+		--the3-on-accent: #102023;
+		--the3-ink: #edf5f5;
+		--the3-paper: #101a1c;
+		--the3-muted: #afc4c6;
+		--the3-line: #435c60;
+		--the3-surface: #19282b;
+		--the3-artwork-filter: brightness(1.5) saturate(0.7);
+	}
+}

@@ -4,78 +4,268 @@ import SiteLayout from "../../layouts/SiteLayout.astro";
 
 // biome-ignore lint/correctness/noUnusedVariables: Astroテンプレートで使用する。
 const demos = [
-	[
-		"demand",
-		"必要人数が変わったら？",
-		"必要人数を変え、配置と不足がどう変わるか確認します。",
-	],
-	[
-		"consecutive_days",
-		"連続勤務を制限したら？",
-		"連勤の上限を変え、勤務日と不足への影響を比較します。",
-	],
-	[
-		"verify",
-		"人が調整した、その後も。",
-		"担当を手で変更し、不足や条件違反の位置を確認します。",
-	],
+	{
+		id: "demand",
+		title: "必要人数が変わったら？",
+		change: "時間帯ごとの必要人数を変更する。",
+		result: "配置人数と、満たせない時間帯の不足を確認する。",
+		link: "必要人数のデモを試してみる",
+	},
+	{
+		id: "consecutive_days",
+		title: "連続勤務を制限したら？",
+		change: "連続して勤務できる日数の上限を変更する。",
+		result: "勤務日の並びと、不足への影響を比較する。",
+		link: "連勤制限のデモを試してみる",
+	},
+	{
+		id: "verify",
+		title: "人が調整した、その後も。",
+		change: "計算済みの配置から、担当者を手で変更する。",
+		result: "変更後の不足や、条件違反の位置を確認する。",
+		link: "手修正検証のデモを試してみる",
+	},
 ];
 ---
 
-<SiteLayout title="shift-schedula | the3合同会社" description="技能と現場の条件に合わせて担当配置・勤務計画を作る最適化エンジン。導入・業務システムへの組み込みをご相談ください。">
-	<div class="page-shell">
-		<header class="page-heading">
+<SiteLayout title="shift-schedula | the3合同会社" description="技能・勤務可能時間・必要人数・勤務ルールから担当配置と勤務計画を作成。条件変更と手修正後の検証を、3つの公開デモで試せます。">
+	<div class="page-shell schedula-page">
+		<nav aria-label="パンくず" class="product-breadcrumb">
+			<ol><li><a href="/">トップ</a></li><li><a href="/products/">製品一覧</a></li><li><span aria-current="page">shift-schedula</span></li></ol>
+		</nav>
+		<header class="page-heading product-heading">
 			<div>
-				<a href="/products/" class="text-link mb-8">製品一覧へ</a>
 				<p class="page-kicker">SHIFT-SCHEDULA</p>
-				<h1 id="schedula-title" class="page-title">シフト作成を、自社の業務に。</h1>
-				<p class="page-lead">技能、勤務可能時間、必要人数、勤務ルール。現場の条件を整理し、担当配置と出退勤・休憩を含む勤務計画を作成します。</p>
-				<a href="#contact" class="text-link mt-6">導入を相談する<span aria-hidden="true">→</span></a>
-			</div>
-		</header>
-		<section class="page-section" aria-labelledby="value-title">
-			<div>
-				<p class="page-kicker">01 / APPROACH</p>
-				<h2 id="value-title" class="section-title">計算する仕組みを、<br />現場で使える仕組みへ。</h2>
-			</div>
-			<div class="section-body">
-				<p>必要な技能と勤務ルールを守りながら計画を作り、需要を満たせない箇所は不足として表示します。結果と手修正した案は独立した検証で確認できます。検証成功と需要の完全充足、最適性はそれぞれ区別します。</p>
-			</div>
-		</section>
-		<section class="page-section" aria-labelledby="demo-title">
-			<div>
-				<p class="page-kicker">02 / EXPLORE</p>
-				<h2 id="demo-title" class="section-title">条件を変えて、<br />計画の変化を見る</h2>
-			</div>
-			<div class="section-body">
-				<p>固定日付の架空データを使います。試験値は法令や就業規則の推奨値ではありません。</p>
-				<div class="demo-list mt-8">
-					{demos.map(([id, title, text]) => <article><h3>{title}</h3><p>{text}</p><a class="text-link mt-3" href={`/products/schedula/demo/#${id}`}>試してみる<span aria-hidden="true">→</span></a></article>)}
+				<p class="product-category">担当配置・勤務計画の最適化エンジン</p>
+				<h1 id="schedula-title" class="page-title">シフト作成を、<wbr />自社の業務に。</h1>
+				<p class="page-lead">技能、勤務可能時間、必要人数、勤務ルール。現場の条件に合わせて、担当配置と出退勤・休憩を含む勤務計画を作成します。</p>
+				<div class="product-actions">
+					<a href="/products/schedula/demo/#demand" class="the3-button">必要人数のデモを試す<span aria-hidden="true">→</span></a>
+					<a href="#contact" class="text-link">導入を相談する<span aria-hidden="true">↓</span></a>
 				</div>
-				<a href="/products/schedula/docs/" class="text-link mt-4">技術案内・利用方法を見る<span aria-hidden="true">→</span></a>
+				<a href="/company/" class="product-provider">the3合同会社が開発・提供</a>
 			</div>
-		</section>
-		<section class="page-section" aria-labelledby="use-title">
+			<aside class="product-flow" aria-label="条件の整理から計画の検証まで">
+				<p class="page-kicker">PLAN / CHECK / ADJUST</p>
+				<ol>
+					<li><span aria-hidden="true">01</span><div><h2>現場の条件を整理する</h2><p>技能・勤務可能時間・必要人数・勤務ルール</p></div></li>
+					<li><span aria-hidden="true">02</span><div><h2>条件に合わせて計画する</h2><p>担当配置と勤務計画を作成。不足も確認。</p></div></li>
+					<li><span aria-hidden="true">03</span><div><h2>手修正した案も検証する</h2><p>変更した配置の不足・条件違反を確認。</p></div></li>
+				</ol>
+			</aside>
+		</header>
+		<nav aria-label="shift-schedulaのページ内ナビゲーション" class="product-nav">
+			<a href="#features">製品の特徴</a><a href="#demo">デモを試す</a><a href="#integration">導入・組み込み</a><a href="#contact">導入の相談</a>
+		</nav>
+		<section id="features" class="page-section" aria-labelledby="value-title">
 			<div>
-				<p class="page-kicker">03 / SUPPORT</p>
-				<h2 id="use-title" class="section-title">自力での組み込みと、<br />導入・開発の支援</h2>
+				<p class="page-kicker">FEATURES</p>
+				<h2 id="value-title" class="section-title">つくるだけでなく、<br />確かめて使う。</h2>
 			</div>
 			<div class="section-body">
-				<p>独自コード・文書・デモのライセンスはMITです。現時点ではソース入手方法をお問い合わせください。PyPI公開やアプリの提供開始を案内するものではありません。</p>
+				<dl class="feature-points">
+					<div><dt>現場の条件を、計画の前提に</dt><dd>必要な技能や勤務可能時間、勤務ルールをもとに、担当配置と勤務計画を作成します。</dd></div>
+					<div><dt>満たせない需要も見える</dt><dd>必要人数を満たせない箇所は、不足として表示します。計画を作れたかと、需要を満たせたかを分けて確認できます。</dd></div>
+					<div><dt>人が直した計画も確かめる</dt><dd>計算した結果だけでなく、手修正した案も独立した検証で確認できます。</dd></div>
+				</dl>
+				<p class="mt-6">検証成功と需要の完全充足、最適性はそれぞれ区別します。</p>
+			</div>
+		</section>
+		<section id="demo" class="page-section" aria-labelledby="demo-title">
+			<div>
+				<p class="page-kicker">EXPLORE</p>
+				<h2 id="demo-title" class="section-title">条件を変えて、<br />計画の変化を見る。</h2>
+				<p class="section-note">気になるテーマから試せる、<br />3つの公開デモ。</p>
+			</div>
+			<div class="section-body">
+				<p>条件を一種類変え、配置や不足への影響を確認します。まずは「必要人数」のデモからお試しください。</p>
+				<div class="product-demos">
+					{demos.map(({ id, title, change, result, link }) => (
+						<article aria-labelledby={`demo-${id}`}>
+							<h3 id={`demo-${id}`}>{title}</h3>
+							<dl><div><dt>変えること</dt><dd>{change}</dd></div><div><dt>確かめること</dt><dd>{result}</dd></div></dl>
+							<a class="text-link" href={`/products/schedula/demo/#${id}`}>{link}<span aria-hidden="true">→</span></a>
+						</article>
+					))}
+				</div>
+				<p>固定日付の架空データを使います。試験値は法令や就業規則の推奨値ではありません。</p>
+			</div>
+		</section>
+		<section id="integration" class="page-section" aria-labelledby="use-title">
+			<div>
+				<p class="page-kicker">INTEGRATION</p>
+				<h2 id="use-title" class="section-title">自社の仕組みに、<br />組み込む。</h2>
+			</div>
+			<div class="section-body">
 				<p>業務ルールの整理、データ連携、画面開発、運用支援は個別にご相談いただけます。支援範囲・費用・期間は案件ごとに確認します。</p>
+				<p>自力での組み込みを検討する方は、技術案内で入力・出力の仕様や利用方法をご確認ください。</p>
+				<a href="/products/schedula/docs/" class="text-link mt-6">技術案内・利用方法を見る<span aria-hidden="true">→</span></a>
+				<p class="mt-6">独自コード・文書・デモのライセンスはMITです。現時点ではソース入手方法をお問い合わせください。PyPI公開やアプリの提供開始を案内するものではありません。</p>
 			</div>
 		</section>
 		<section id="contact" class="page-section" aria-labelledby="contact-title">
 			<div>
-				<p class="page-kicker">04 / CONTACT</p>
+				<p class="page-kicker">CONTACT</p>
 				<h2 id="contact-title" class="section-title">導入のご相談</h2>
 			</div>
 			<div class="section-body">
 				<p>自社の条件でも実現できるか、ご相談ください。</p>
 				<p>対象業務、人数・期間、守りたいルール、現在の運用方法をお知らせください。</p>
-				<p class="mt-6"><a href="/contact/" class="text-link">お問い合わせ窓口へ</a></p>
-				<a href="mailto:omitsuhashi@the3.co.jp?subject=shift-schedula%20導入・個別開発の相談" class="text-link contact-address mt-6">omitsuhashi@the3.co.jp</a>
+				<div class="product-actions">
+					<a href="/contact/" class="the3-button">お問い合わせ窓口へ<span aria-hidden="true">→</span></a>
+					<a href="mailto:omitsuhashi@the3.co.jp?subject=shift-schedula%20導入・個別開発の相談" class="text-link">メールで相談する<span aria-hidden="true">→</span></a>
+				</div>
+				<a href="/products/" class="text-link mt-8">製品・導入支援の一覧へ<span aria-hidden="true">→</span></a>
 			</div>
 		</section>
 	</div>
 </SiteLayout>
+
+<style>
+	.product-breadcrumb ol {
+		display: flex;
+		align-items: center;
+		flex-wrap: wrap;
+		gap: var(--the3-space-sm) 1rem;
+		color: var(--color-muted);
+		font-size: 12px;
+	}
+	.product-breadcrumb li + li::before {
+		margin-right: 1rem;
+		content: "/";
+	}
+	.product-breadcrumb a,
+	.product-provider {
+		text-decoration: underline;
+		text-underline-offset: 4px;
+	}
+	.product-breadcrumb a {
+		display: inline-block;
+		padding-block: 12px;
+	}
+	.product-heading {
+		display: grid;
+		grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr);
+		gap: 64px;
+		padding-top: 40px;
+	}
+	.product-category {
+		margin-top: 12px;
+		color: var(--color-muted);
+		font-size: 14px;
+	}
+	.product-heading .page-title {
+		word-break: keep-all;
+		overflow-wrap: anywhere;
+		font-size: clamp(2.5rem, 4.8vw, 4.5rem);
+		font-weight: 500;
+	}
+	.product-actions {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: var(--the3-space-md) var(--the3-space-lg);
+		margin-top: 32px;
+	}
+	.product-provider {
+		display: inline-block;
+		margin-top: 20px;
+		padding-block: 12px;
+		color: var(--color-muted);
+		font-size: 13px;
+	}
+	.product-flow {
+		border-block: 1px solid var(--color-line);
+		padding-block: 28px;
+	}
+	.product-flow li {
+		display: grid;
+		grid-template-columns: auto minmax(0, 1fr);
+		gap: var(--the3-space-md);
+		margin-top: 28px;
+	}
+	.product-flow li > span {
+		padding-top: 4px;
+		color: var(--color-forest);
+		font-size: 12px;
+	}
+	.product-flow h2,
+	.feature-points dt,
+	.product-demos h3 {
+		font-size: 20px;
+		font-weight: 500;
+		line-height: 1.6;
+	}
+	.product-flow p:not(.page-kicker),
+	.feature-points dd,
+	.section-note,
+	.product-demos dl {
+		margin-top: 12px;
+		color: var(--color-muted);
+		font-size: 15px;
+		line-height: 1.9;
+	}
+	.product-nav {
+		display: flex;
+		flex-wrap: wrap;
+		column-gap: var(--the3-space-lg);
+		padding-bottom: 16px;
+		color: var(--color-forest);
+		font-size: 14px;
+	}
+	.product-nav a {
+		padding-block: 12px;
+		text-decoration: underline;
+		text-underline-offset: 6px;
+	}
+	.schedula-page section {
+		scroll-margin-top: 24px;
+	}
+	.feature-points > div + div {
+		margin-top: 28px;
+	}
+	.product-demos article {
+		border-bottom: 1px solid var(--color-line);
+		padding-block: 28px;
+	}
+	.product-demos article:last-child {
+		margin-bottom: 24px;
+	}
+	.product-demos dl > div {
+		display: grid;
+		grid-template-columns: 7rem minmax(0, 1fr);
+		gap: 16px;
+		margin-bottom: 8px;
+	}
+	.product-demos dt {
+		color: var(--color-ink);
+	}
+	.product-demos .text-link {
+		margin-top: 12px;
+	}
+	@media (max-width: 900px) {
+		.product-heading {
+			grid-template-columns: minmax(0, 1fr);
+			gap: 36px;
+			padding-top: 28px;
+		}
+	}
+	@media (max-width: 767px) {
+		.schedula-page {
+			padding-top: 24px;
+		}
+		.product-demos dl > div {
+			grid-template-columns: minmax(0, 1fr);
+			gap: 4px;
+			margin-top: 16px;
+		}
+		.product-flow h2,
+		.feature-points dt,
+		.product-demos h3 {
+			font-size: 18px;
+		}
+		.product-actions .the3-button {
+			width: 100%;
+		}
+	}
+</style>

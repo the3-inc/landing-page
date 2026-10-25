@@ -136,11 +136,34 @@ test("builds company and product pages with shared navigation and development-on
 			expect(link).toContain(`aria-current="${current}"`);
 			expect(link).toContain(`aria-[current=${current}]:underline`);
 		}
-		expect(product).toContain("シフト作成を、自社の業務に。");
+		expect(product.replace(/<[^>]+>/g, "")).toContain(
+			"シフト作成を、自社の業務に。",
+		);
 		expect(product).toContain(
 			'rel="canonical" href="https://the3.co.jp/products/schedula/"',
 		);
 		expect(product).not.toContain("<script");
+		for (const html of [productIndex, product]) {
+			expect(html.match(/<h1\b/g)).toHaveLength(1);
+			for (const path of paths) expect(html).toContain(`href="${path}"`);
+		}
+		const productContent = product.match(/<main\b[^>]*>(.*?)<\/main>/s)?.[1];
+		expect(productContent).toBeDefined();
+		for (const anchor of productContent?.matchAll(/href="#([^"\s]+)"/g) ?? [])
+			expect(productContent).toContain(`id="${anchor[1]}"`);
+		for (const path of ["/", "/products/", "/company/", "/contact/"])
+			expect(productContent).toContain(`href="${path}"`);
+		for (const label of [
+			"パンくず",
+			"the3合同会社が開発・提供",
+			"必要人数のデモを試す",
+			"連勤制限のデモを試してみる",
+			"手修正検証のデモを試してみる",
+			"変えること",
+			"確かめること",
+		])
+			expect(productContent).toContain(label);
+		expect(productContent).toContain('class="the3-button"');
 		const assets = await readdir(join(outDir, "_astro"));
 		const styles = await Promise.all(
 			assets
