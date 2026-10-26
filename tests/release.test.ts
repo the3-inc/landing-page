@@ -60,7 +60,7 @@ test("only deploys version tags reachable from origin/main, including older rele
 		}
 		git("switch", "main");
 		const workflow = await readFile(
-			new URL("../.github/workflows/deploy.yml", import.meta.url),
+			new URL("../.github/workflows/deploy-site.yml", import.meta.url),
 			"utf8",
 		);
 		const prepare = workflow.match(
@@ -104,4 +104,25 @@ test("only deploys version tags reachable from origin/main, including older rele
 		await rm(cwd, { recursive: true, force: true });
 		await rm(runnerTemp, { recursive: true, force: true });
 	}
+});
+
+test("tag callers must use the trusted main deployment workflow", async () => {
+	const entry = await readFile(
+		new URL("../.github/workflows/deploy.yml", import.meta.url),
+		"utf8",
+	);
+	expect(entry).toContain(
+		"uses: the3-inc/landing-page/.github/workflows/deploy-site.yml@main",
+	);
+	expect(
+		JSON.parse(
+			await readFile(
+				new URL("../.github/oidc-subject.json", import.meta.url),
+				"utf8",
+			),
+		),
+	).toEqual({
+		use_default: false,
+		include_claim_keys: ["repo", "context", "job_workflow_ref"],
+	});
 });

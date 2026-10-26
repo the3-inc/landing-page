@@ -63,3 +63,9 @@ PR/main CIはフロントエンドを検証し、TerraformとURL rewriteはinfra
 
 [GA4の設定・イベント定義・受付先の契約・受入確認](analytics.md)に従う。
 `PUBLIC_GA4_MEASUREMENT_ID`は両repoで同じRepository variableを使う。受付サービス選定後に`PUBLIC_CONTACT_ENDPOINT`をproduction Environment variableへ登録する。AWS公開先の5変数とは別に管理し、infraの自動同期対象には加えない。
+
+## 公開ロールと信頼する workflow
+
+公開ロールは `landing-page-deploy`。タグ・手動起動の入口は維持し、認証するコードは main の `deploy-site.yml` に固定します。AWS の信頼条件は repository の固定 ID、production、再利用 workflow の job_workflow_ref を照合します。`.github/oidc-subject.json` は移行時に管理者が GitHub へ反映します。
+
+旧ロールからの切替は infra の [IAM 移行手順](https://github.com/the3-inc/infra/blob/main/docs/iam-migration.md)に従い、AWS_ROLE_ARN・subject template・workflow を合わせます。旧版への切り戻しは、現在の main の公開入口に既存タグを指定してください。IAM の管理は infra の管理者用 foundation が担当します。
