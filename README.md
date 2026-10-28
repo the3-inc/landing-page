@@ -15,7 +15,7 @@ infraは準備中APIを含む配信基盤までを構築します。会社サイ
 
 ## 開発
 
-Node.js **26.12.1**（`.node-version`）、Python **3.14.9**（`.python-version`）、pnpm **12.11.2**（`package.json`）を使います。
+Node.js **26.12.1**（`.node-version`）、Python **3.14.10**（`.python-version`）、pnpm **12.11.2**（`package.json`）を使います。
 バージョンファイルだけではランタイムは切り替わらないため、実行環境で指定バージョンを選んでください。CI・公開workflowもこれらのファイルを参照します。
 
 2026年10月21日の[Node.js セキュリティ修正](https://nodejs.org/en/blog/vulnerability/october-2026-security-releases)と[Python の修正版](https://www.python.org/downloads/release/python-3149/)を適用しています。
@@ -84,7 +84,7 @@ Vitest は一時ディレクトリへ5ページをビルドし、本文・共通
 問い合わせ／地図リンク・生成 CSS・本番スクリプトと開発 UI の除外を検査します。
 テーマのテストでは、システム設定の変更、保存済みの選択、ストレージが使えない場合を確認します。
 
-Python 3.14.9の標準ライブラリで、会社・製品の接続検査もテストします。追加のPythonパッケージは不要です。
+Python 3.14.10の標準ライブラリで、会社・製品の接続検査もテストします。追加のPythonパッケージは不要です。
 公開パスで両サイトを確認する手順は[サイト間の接続確認](docs/site-integration.md)を参照してください。
 
 Astro は `output: "static"` を明示し、サーバーアダプターやフロントエンドフレームワークを使いません。
