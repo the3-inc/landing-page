@@ -42,3 +42,12 @@
 		--the3-artwork-filter: brightness(1.5) saturate(0.7);
 	}
 }
+
+/* 初版の意味名も既存プリセットと同じ値へ対応付ける。 */
+:root {
+	--the3-brand: var(--the3-accent);
+	--the3-on-brand: var(--the3-on-accent);
+	--the3-text: var(--the3-ink);
+	--the3-background: var(--the3-paper);
+	--the3-border: var(--the3-line);
+}

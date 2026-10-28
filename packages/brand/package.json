@@ -1,0 +1,24 @@
+{
+	"name": "@the3/brand",
+	"version": "1.0.0",
+	"private": true,
+	"description": "the3の共有デザイン基盤",
+	"license": "UNLICENSED",
+	"files": [
+		"tokens.css",
+		"base.css",
+		"assets/the3-symbol.svg",
+		"README.md",
+		"CHANGELOG.md",
+		"LICENSE"
+	],
+	"exports": {
+		"./tokens.css": "./tokens.css",
+		"./base.css": "./base.css",
+		"./assets/the3-symbol.svg": "./assets/the3-symbol.svg",
+		"./package.json": "./package.json"
+	},
+	"sideEffects": [
+		"**/*.css"
+	]
+}

@@ -1,5 +1,5 @@
 @import "tailwindcss";
-@import "@the3/brand-preset/base.css" layer(base);
+@import "@the3/brand/base.css" layer(base);
 
 @theme {
 	--color-forest: var(--the3-accent);

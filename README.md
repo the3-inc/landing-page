@@ -35,14 +35,14 @@ pnpm dev
 | ページの追加 | `src/pages/` |
 | そのまま配信する画像など | `public/` |
 | 共通ヘッダー・フッター・メタデータ・開発用テーマ選択 | `src/layouts/SiteLayout.astro` |
-| 会社・製品共通CSSライブラリの配布元ソース | `packages/brand-preset/` |
-| 会社サイトが使う公開版の固定 | `package.json` の `@the3/brand-preset` と `pnpm-lock.yaml` |
+| 会社・製品共通CSSライブラリの配布元ソース | `packages/brand/` |
+| 会社サイトが使う公開版の固定 | `package.json` の `@the3/brand` workspace依存と `pnpm-lock.yaml` |
 | Tailwindへの対応付け・会社サイトのレイアウト | `src/styles/global.css` |
 | Astro・Tailwind の設定 | `astro.config.mjs` |
 
-LP・デモ・技術案内で共有するグローバルCSSの正本は[共通プリセット](packages/brand-preset/README.md)です。会社サイトもschedulaと同じGitHub Releaseの0.2.0を固定依存として取り込み、`src/styles/global.css`から`@the3/brand-preset/base.css`を読み込みます。配布元ソースへの相対importは使いません。
+LP・デモ・技術案内で共有するグローバルCSSの正本は[共有デザインパッケージ](packages/brand/README.md)です。会社サイトは同じリポジトリのworkspaceパッケージを使い、`src/styles/global.css`から`@the3/brand/base.css`を読み込みます。
 
-ライブラリのソース修正だけでは会社サイトは変わりません。新しい配布版を公開した後、`package.json`のRelease URLと`pnpm-lock.yaml`を更新するPRで採用します。通常のCIは`pnpm install --frozen-lockfile`で固定した配布物を検証し、成果物へCSSを含めます。閲覧時に配布元へCSSを取得する通信は発生しません。[新製品への導入・公開・更新手順](docs/brand-preset-distribution.md)を参照してください。
+会社サイトはパッケージソースと同じコミットを検証します。別リポジトリは`design-v*`の配布物を固定して取り込み、更新PRで採用します。会社サイトも製品も閲覧時に配布元からCSSを取得しません。[配布・更新手順](docs/design-package.md)を参照してください。
 
 トップページ、会社案内、お問い合わせ、製品一覧・詳細は、見出し・余白・細い区切り線を共通にしています。
 shift-schedulaの製品LPは、特徴、3つの公開デモ、導入・組み込み、相談の順で案内します。製品の図解とデモの構成はページ内のスタイルで管理します。
@@ -97,3 +97,7 @@ TerraformとCloudFrontのURL処理はinfraのCIで検証します。
 通常更新はmainへマージ → main CI成功 → 会社タグpush → 必要な承認 → 公開確認です。
 AWS基盤を変更するときはinfraリポジトリでplan/applyします。会社タグworkflowはTerraformを実行しません。
 製品紹介を追加するときはコンテンツテストとworkflowの公開URL確認も更新してください。
+
+## design-v1への移行
+
+共有CSSの正本は`packages/brand/`、パッケージ名は`@the3/brand`です。旧プリセットの配色・共有クラスを維持します。[配布と利用の手順](docs/design-package.md)を参照してください。

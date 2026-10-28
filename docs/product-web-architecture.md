@@ -31,14 +31,14 @@
 | キーボード操作、フォーカス表示、本文への移動、動きを減らす設定 | メニュー項目、操作の順序、製品固有のボタン・結果表示 |
 | 製品紹介へ戻るリンクと導入相談への導線 | 会社サイトと異なる製品用ヘッダー・フッター |
 
-会社側のブランド素材は[デザイン素材](brand-assets.md)、共通CSSの正本は`packages/brand-preset/`を参照します。LPからデモへ遷移しても、本文・背景・書体・リンク・主要操作・ヘッダーの基調とテーマが大きく変わらないことを共通の基準にします。
+会社側のブランド素材は[デザイン素材](brand-assets.md)、共通CSSの正本は`packages/brand/`を参照します。LPからデモへ遷移しても、本文・背景・書体・リンク・主要操作・ヘッダーの基調とテーマが大きく変わらないことを共通の基準にします。
 製品側では、例えば「the3合同会社の製品」の表示と会社サイトへのリンクで関係を示し、製品ロゴを会社ロゴに置き換えることは求めません。
 
 共通部分をコードで配布するときは、必要なCSS・画像などを小さくまとめ、各利用側が版を固定してビルドへ取り込みます。実行時に他サイトの最新ヘッダーやCSSを取得する構成は採用しません。
-2026-10-25、今後の製品追加に備え、会社サイトの色・書体・テーマ・余白・フォーカス表示・主要ボタンを、フレームワーク非依存の `packages/brand-preset/` へ抽出しました。会社サイトはこのライブラリの公開版を`package.json`と`pnpm-lock.yaml`で固定して読み込み、既存のTailwind名へ値を対応付けます。製品LP固有の構成はページのスコープ内に置きます。
+2026-10-25、今後の製品追加に備え、会社サイトの色・書体・テーマ・余白・フォーカス表示・主要ボタンを、フレームワーク非依存の `packages/brand/` へ抽出しました。会社サイトはこのライブラリを`package.json`のworkspace依存として同じコミットから読み込み、既存のTailwind名へ値を対応付けます。製品LP固有の構成はページのスコープ内に置きます。
 
-[共通プリセットの利用・配布方針](../packages/brand-preset/README.md)を参照してください。管理・配布元はこのリポジトリのGitHub Releasesとし、`brand-preset-vX.Y.Z` タグで会社サイトと別に配布します。schedulaは配布版・SHA-256を固定してCSSをGitへ取り込み、公開ビルドで整合を検査します。新製品も[導入・更新・切り戻し手順](brand-preset-distribution.md)に従い、利用側の更新PR・表示検証・独立公開を通して反映します。
-プリセットはデモ専用ではなく、すべての会社・製品Webで共有するCSSライブラリです。会社サイトのページ共通スタイルも正本へ移し、`the3-*`クラスとして配布します。製品側は`web/vendor/brand-preset/`に一部だけ複製せず一式を固定し、LP・デモ・技術案内で共有します。製品の共通スタイルは`web/styles/global.css`、ページ固有の構成は個別CSSに置きます。デモからLP用CSS全体を読み込む依存は設けません。
+[共通プリセットの利用・配布方針](../packages/brand/README.md)を参照してください。管理・配布元はこのリポジトリのGitHub Releasesとし、`design-vX.Y.Z` タグで会社サイトと別に配布します。schedulaは配布版・SHA-256を固定してCSSをGitへ取り込み、公開ビルドで整合を検査します。新製品も[導入・更新・切り戻し手順](design-package.md)に従い、利用側の更新PR・表示検証・独立公開を通して反映します。
+プリセットはデモ専用ではなく、すべての会社・製品Webで共有するCSSライブラリです。会社サイトのページ共通スタイルも正本へ移し、`the3-*`クラスとして配布します。製品側は`web/vendor/the3-brand/`に一部だけ複製せず一式を固定し、LP・デモ・技術案内で共有します。製品の共通スタイルは`web/styles/global.css`、ページ固有の構成は個別CSSに置きます。デモからLP用CSS全体を読み込む依存は設けません。
 
 全画面へヘッダー変更を必ず同時反映する要件が生じた場合は、共有部品の導入だけでは足りないため、ビルド・公開単位をまとめるかを再検討します。
 
@@ -168,3 +168,5 @@ GitHub mainを優先したファイルのblob SHAは、schedulaの`.github/workf
 - [GOV.UK: Navigate a service](https://design-system.service.gov.uk/patterns/navigate-a-service/): 組織全体のヘッダーとサービス固有ナビゲーションの分担。
 - [Atlassian: Design tokens](https://atlassian.design/tokens/design-tokens/): 共通の視覚基準とテーマによる値の変更。
 - [CloudFrontのキャッシュ動作](https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/DownloadDistValuesCacheBehavior.html): パスパターンの優先順位と配信先の選択。
+
+現在の配布・自己利用は[共有デザインパッケージ](design-package.md)を正本とします。旧版Releaseは維持します。
