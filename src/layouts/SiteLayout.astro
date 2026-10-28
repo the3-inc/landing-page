@@ -5,9 +5,7 @@ interface Props {
 	title: string;
 	description: string;
 }
-// biome-ignore lint/correctness/noUnusedVariables: Biome does not track references in Astro templates.
 const { title, description } = Astro.props;
-// biome-ignore lint/correctness/noUnusedVariables: Biome does not track references in Astro templates.
 const currentPage = Astro.url.pathname.replace(/\/$/, "");
 const ga4Id = import.meta.env.PUBLIC_GA4_MEASUREMENT_ID || "";
 if (ga4Id && !/^G-[A-Z0-9]+$/.test(ga4Id)) {
