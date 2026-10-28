@@ -13,3 +13,9 @@ coverage/
 *.tfvars.json
 backend.hcl
 crash.log
+
+__pycache__/
+
+test-results/
+
+.design-dist/

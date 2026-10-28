@@ -1,0 +1,39 @@
+@layer the3-base {
+	html {
+		scroll-behavior: smooth;
+	}
+	body {
+		margin: 0;
+		background: var(--the3-background);
+		color: var(--the3-text);
+		font-family: var(--the3-font-sans);
+		line-height: var(--the3-line-height);
+		-webkit-font-smoothing: antialiased;
+	}
+	a:focus-visible,
+	button:focus-visible,
+	input:focus-visible,
+	textarea:focus-visible,
+	select:focus-visible,
+	[tabindex]:focus-visible {
+		outline: var(--the3-focus-width) solid var(--the3-focus-color);
+		outline-offset: var(--the3-focus-offset);
+	}
+	.the3-skip-link {
+		position: absolute;
+		left: var(--the3-space-md);
+		top: -100px;
+		z-index: 50;
+		padding: var(--the3-space-md) var(--the3-space-lg);
+		background: var(--the3-background);
+		color: var(--the3-text);
+	}
+	.the3-skip-link:focus {
+		top: var(--the3-space-md);
+	}
+	@media (prefers-reduced-motion: reduce) {
+		html {
+			scroll-behavior: auto;
+		}
+	}
+}

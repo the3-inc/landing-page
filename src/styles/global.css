@@ -1,75 +1,28 @@
+@layer the3-tokens, theme, base, the3-base, components, utilities;
 @import "tailwindcss";
+@import "@the3/brand/tokens.css";
+@import "@the3/brand/base.css";
 
-@theme {
-	--color-forest: #173f35;
-	--color-on-forest: #ffffff;
-	--color-ink: #202522;
-	--color-paper: #fafbf9;
-	--color-muted: #526058;
-	--color-line: #c7ceca;
-	--color-surface: #edf0ee;
-	--font-sans:
-		"Helvetica Neue", Arial, "Hiragino Kaku Gothic ProN", "Noto Sans JP",
-		sans-serif;
+@theme inline {
+	--color-forest: var(--the3-brand);
+	--color-on-forest: var(--the3-on-brand);
+	--color-ink: var(--the3-text);
+	--color-paper: var(--the3-background);
+	--color-muted: var(--the3-muted);
+	--color-line: var(--the3-border);
+	--color-surface: var(--the3-surface);
+	--font-sans: var(--the3-font-sans);
 }
 
 @layer base {
-	:root {
-		color-scheme: light dark;
-	}
-	:root[data-theme="light"] {
-		color-scheme: light;
-	}
-	:root[data-theme="dark"] {
-		color-scheme: dark;
-		--color-forest: #acd8c2;
-		--color-on-forest: #12271e;
-		--color-ink: #edf2ef;
-		--color-paper: #121916;
-		--color-muted: #b2bfb7;
-		--color-line: #4d5c55;
-		--color-surface: #1b2420;
-		--artwork-filter: brightness(1.5) saturate(0.7);
-	}
-	@media (prefers-color-scheme: dark) {
-		:root:not([data-theme="light"]) {
-			--color-forest: #acd8c2;
-			--color-on-forest: #12271e;
-			--color-ink: #edf2ef;
-			--color-paper: #121916;
-			--color-muted: #b2bfb7;
-			--color-line: #4d5c55;
-			--color-surface: #1b2420;
-			--artwork-filter: brightness(1.5) saturate(0.7);
-		}
-	}
-	html {
-		scroll-behavior: smooth;
-	}
 	body {
-		margin: 0;
 		display: grid;
 		grid-template-rows: auto 1fr auto;
 		min-height: 100dvh;
-		background: var(--color-paper);
-		color: var(--color-ink);
 	}
 	::selection {
-		background: var(--color-forest);
-		color: var(--color-on-forest);
-	}
-	a:focus-visible,
-	button:focus-visible,
-	input:focus-visible,
-	textarea:focus-visible,
-	select:focus-visible {
-		outline: 3px solid currentColor;
-		outline-offset: 6px;
-	}
-	@media (prefers-reduced-motion: reduce) {
-		html {
-			scroll-behavior: auto;
-		}
+		background: var(--the3-brand);
+		color: var(--the3-on-brand);
 	}
 }
 
@@ -110,7 +63,7 @@
 		width: 180px;
 		height: 180px;
 		flex: none;
-		filter: var(--artwork-filter, none);
+		filter: var(--the3-artwork-filter);
 	}
 	.page-section {
 		display: grid;

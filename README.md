@@ -35,11 +35,12 @@ pnpm dev
 | ページの追加 | `src/pages/` |
 | そのまま配信する画像など | `public/` |
 | 共通ヘッダー・フッター・メタデータ・開発用テーマ選択 | `src/layouts/SiteLayout.astro` |
-| ブランドカラー・基本スタイル | `src/styles/global.css` |
+| 共有色・基本スタイル | `packages/brand/` |
+| 会社サイト固有のスタイル | `src/styles/global.css` |
 | Astro・Tailwind の設定 | `astro.config.mjs` |
 
 トップページ、会社案内、お問い合わせ、製品一覧・詳細は、見出し・余白・細い区切り線を共通にしています。
-ロゴは `public/brand/the3-symbol.svg` にベクターパスで保存しています。元のPNGと生成・変換の情報は
+ロゴの正本は `packages/brand/assets/the3-symbol.svg` です。`public/brand/the3-symbol.svg` は既存URLを維持する互換コピーで、Astroの起動・ビルド時に正本から生成します。元のPNGと生成・変換の情報は
 [デザイン素材](docs/brand-assets.md)、表示と導線の確認結果は[デザイン確認](design-qa.md)を参照してください。
 
 トップページは理念の説明、取り組み方、製品紹介、会社案内、お問い合わせの順で構成します。
@@ -88,3 +89,7 @@ TerraformとCloudFrontのURL処理はinfraのCIで検証します。
 通常更新はmainへマージ → main CI成功 → 会社タグpush → 必要な承認 → 公開確認です。
 AWS基盤を変更するときはinfraリポジトリでplan/applyします。会社タグworkflowはTerraformを実行しません。
 製品紹介を追加するときはコンテンツテストとworkflowの公開URL確認も更新してください。
+
+## 共有デザイン
+
+会社サイト自身と製品・別リポジトリで使うCSS・会社ロゴは`packages/brand/`で管理します。配布タグは`design-v*`です。[共有デザインの更新・配布手順](docs/design-package.md)を参照してください。

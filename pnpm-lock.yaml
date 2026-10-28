@@ -166,6 +166,9 @@ importers:
 
   .:
     dependencies:
+      '@the3/brand':
+        specifier: workspace:*
+        version: link:packages/brand
       astro:
         specifier: 7.3.8
         version: 7.3.8(@types/node@26.6.5)(jiti@2.7.0)(yaml@2.9.1)
@@ -194,6 +197,8 @@ importers:
       vitest:
         specifier: 5.0.4
         version: 5.0.4(@types/node@26.6.5)(vite@8.3.4(@types/node@26.6.5)(jiti@2.7.0)(yaml@2.9.1))
+
+  packages/brand: {}
 
 packages:
 
