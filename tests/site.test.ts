@@ -103,7 +103,7 @@ test("builds company and product pages with shared navigation and development-on
 		);
 		expect(company).toContain('rel="noopener noreferrer"');
 		expect(contact).toContain("<title>お問い合わせ | the3合同会社</title>");
-		expect(contact).toContain('href="mailto:omitsuhashi@the3-o.com"');
+		expect(contact).toContain('href="mailto:omitsuhashi@the3.co.jp"');
 		expect(contact).toContain('href="tel:08067462024"');
 		expect(contact).not.toContain('id="access"');
 		const productIndex = await readFile(
@@ -136,18 +136,53 @@ test("builds company and product pages with shared navigation and development-on
 			expect(link).toContain(`aria-current="${current}"`);
 			expect(link).toContain(`aria-[current=${current}]:underline`);
 		}
-		expect(product).toContain("シフト作成を、自社の業務に。");
+		expect(product.replace(/<[^>]+>/g, "")).toContain(
+			"シフト作成を、自社の業務に。",
+		);
 		expect(product).toContain(
 			'rel="canonical" href="https://the3.co.jp/products/schedula/"',
 		);
 		expect(product).not.toContain("<script");
+		for (const html of [productIndex, product]) {
+			expect(html.match(/<h1\b/g)).toHaveLength(1);
+			for (const path of paths) expect(html).toContain(`href="${path}"`);
+		}
+		const productContent = product.match(/<main\b[^>]*>(.*?)<\/main>/s)?.[1];
+		expect(productContent).toBeDefined();
+		for (const anchor of productContent?.matchAll(/href="#([^"\s]+)"/g) ?? [])
+			expect(productContent).toContain(`id="${anchor[1]}"`);
+		for (const path of ["/", "/products/", "/company/", "/contact/"])
+			expect(productContent).toContain(`href="${path}"`);
+		for (const label of [
+			"パンくず",
+			"the3合同会社が開発・提供",
+			"必要人数のデモを試す",
+			"連勤制限のデモを試してみる",
+			"手修正検証のデモを試してみる",
+			"変えること",
+			"確かめること",
+		])
+			expect(productContent).toContain(label);
+		expect(productContent).toContain('class="the3-button"');
 		const assets = await readdir(join(outDir, "_astro"));
 		const styles = await Promise.all(
 			assets
 				.filter((file) => file.endsWith(".css"))
 				.map((file) => readFile(join(outDir, "_astro", file), "utf8")),
 		);
-		expect(styles.join("")).toContain(".bg-forest");
+		for (const selector of [
+			".the3-site-header",
+			".the3-page-shell",
+			".the3-page-section",
+			".the3-button-compact",
+			".the3-skip-link",
+		])
+			expect(styles.join("")).toContain(selector);
+		for (const html of [...pages, productIndex, product]) {
+			expect(html).toContain('class="the3-site-header"');
+			expect(html).toContain('class="the3-skip-link"');
+		}
+		expect(styles.join("")).toContain(".the3-button");
 		expect(styles.join("")).toContain("--color-forest");
 		expect(styles.join("")).not.toContain("light-dark(");
 		expect(styles.join("")).not.toContain("scroll-snap");
@@ -155,10 +190,13 @@ test("builds company and product pages with shared navigation and development-on
 		for (const id of ["demand", "consecutive_days", "verify"])
 			expect(product).toContain(`href="/products/schedula/demo/#${id}"`);
 		expect(product).toContain('href="/products/schedula/docs/"');
+		expect(product).toContain('href="https://github.com/the3-inc/schedula"');
+		expect(product).toContain(
+			'href="https://pypi.org/project/shift-schedula/0.2.0/"',
+		);
 		for (const text of [
 			"固定日付の架空データを使います。",
 			"検証成功と需要の完全充足、最適性はそれぞれ区別します。",
-			"PyPI公開やアプリの提供開始を案内するものではありません。",
 			"支援範囲・費用・期間は案件ごとに確認します。",
 		])
 			expect(product).toContain(text);

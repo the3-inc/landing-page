@@ -1,6 +1,6 @@
 # 共有デザインパッケージ
 
-正本は`packages/brand/`、会社サイトは`@the3/brand`をworkspace依存として使います。利用方法・固定版の取得・配布条件は[パッケージの説明](../packages/brand/README.md)を参照してください。
+旧`@the3/brand-preset` v0.2.0の配色・共有クラスを維持し、正本を`packages/brand/`へ移行します。正本は`packages/brand/`、会社サイトは`@the3/brand`をworkspace依存として使います。利用方法・固定版の取得・配布条件は[パッケージの説明](../packages/brand/README.md)を参照してください。
 
 ## 更新と正式発行
 
@@ -20,3 +20,5 @@
 ## ブラウザー検証
 
 `pnpm build`後、CIと同じPlaywright 1.62.1と対応するChromiumを用意し、`PLAYWRIGHT_MODULE_PATH`にPlaywrightの配置先を指定して`pnpm test:browser`を実行します。CIでは一時フォルダへ検証ツールを入れます。ライト・ダーク、320/390/768/1440px、本文スキップ、背景・フォント・動きを減らす設定を検証し、画面画像を`test-results/design/`へ保存します。
+
+旧`brand-preset-v*`の公開済みReleaseは変更しません。旧版アーカイブ用の`install_brand_preset.py`は互換用として残し、旧パッケージの新規発行workflowとソース配置は新しい正本へ統合します。

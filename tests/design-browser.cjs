@@ -58,7 +58,7 @@ const { chromium } = require(
 					}));
 					assert.equal(
 						style.background,
-						scheme === "light" ? "rgb(250, 251, 249)" : "rgb(18, 25, 22)",
+						scheme === "light" ? "rgb(250, 252, 252)" : "rgb(16, 26, 28)",
 					);
 					assert(style.font.includes("Helvetica Neue"));
 					assert.equal(style.motion, "auto");

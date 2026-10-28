@@ -15,7 +15,7 @@ infraは準備中APIを含む配信基盤までを構築します。会社サイ
 
 ## 開発
 
-Node.js **26.12.1**（`.node-version`）、Python **3.14.9**（`.python-version`）、pnpm **12.11.2**（`package.json`）を使います。
+Node.js **26.12.1**（`.node-version`）、Python **3.14.10**（`.python-version`）、pnpm **12.11.2**（`package.json`）を使います。
 バージョンファイルだけではランタイムは切り替わらないため、実行環境で指定バージョンを選んでください。CI・公開workflowもこれらのファイルを参照します。
 
 2026年10月21日の[Node.js セキュリティ修正](https://nodejs.org/en/blog/vulnerability/october-2026-security-releases)と[Python の修正版](https://www.python.org/downloads/release/python-3149/)を適用しています。
@@ -35,12 +35,20 @@ pnpm dev
 | ページの追加 | `src/pages/` |
 | そのまま配信する画像など | `public/` |
 | 共通ヘッダー・フッター・メタデータ・開発用テーマ選択 | `src/layouts/SiteLayout.astro` |
-| 共有色・基本スタイル | `packages/brand/` |
-| 会社サイト固有のスタイル | `src/styles/global.css` |
+| 会社・製品共通CSSライブラリの配布元ソース | `packages/brand-preset/` |
+| 会社サイトが使う公開版の固定 | `package.json` の `@the3/brand-preset` と `pnpm-lock.yaml` |
+| Tailwindへの対応付け・会社サイトのレイアウト | `src/styles/global.css` |
 | Astro・Tailwind の設定 | `astro.config.mjs` |
 
+LP・デモ・技術案内で共有するグローバルCSSの正本は[共通プリセット](packages/brand-preset/README.md)です。会社サイトもschedulaと同じGitHub Releaseの0.2.0を固定依存として取り込み、`src/styles/global.css`から`@the3/brand-preset/base.css`を読み込みます。配布元ソースへの相対importは使いません。
+
+ライブラリのソース修正だけでは会社サイトは変わりません。新しい配布版を公開した後、`package.json`のRelease URLと`pnpm-lock.yaml`を更新するPRで採用します。通常のCIは`pnpm install --frozen-lockfile`で固定した配布物を検証し、成果物へCSSを含めます。閲覧時に配布元へCSSを取得する通信は発生しません。[新製品への導入・公開・更新手順](docs/brand-preset-distribution.md)を参照してください。
+
 トップページ、会社案内、お問い合わせ、製品一覧・詳細は、見出し・余白・細い区切り線を共通にしています。
-ロゴの正本は `packages/brand/assets/the3-symbol.svg` です。`public/brand/the3-symbol.svg` は既存URLを維持する互換コピーで、Astroの起動・ビルド時に正本から生成します。元のPNGと生成・変換の情報は
+shift-schedulaの製品LPは、特徴、3つの公開デモ、導入・組み込み、相談の順で案内します。製品の図解とデモの構成はページ内のスタイルで管理します。
+背景は白に近い `#fafcfc`、文字は `#183638`、リンクとトップのお問い合わせボタンはティール `#087f83` を使います。
+製品紹介もページ全体と同じ背景とし、余白と細い線で区切ります。ロゴと理念の図版は元の深緑・セージ・黄土を保ちます。
+ロゴは `public/brand/the3-symbol.svg` にベクターパスで保存しています。元のPNGと生成・変換の情報は
 [デザイン素材](docs/brand-assets.md)、表示と導線の確認結果は[デザイン確認](design-qa.md)を参照してください。
 
 トップページは理念の説明、取り組み方、製品紹介、会社案内、お問い合わせの順で構成します。
@@ -76,7 +84,7 @@ Vitest は一時ディレクトリへ5ページをビルドし、本文・共通
 問い合わせ／地図リンク・生成 CSS・本番スクリプトと開発 UI の除外を検査します。
 テーマのテストでは、システム設定の変更、保存済みの選択、ストレージが使えない場合を確認します。
 
-Python 3.14.9の標準ライブラリで、会社・製品の接続検査もテストします。追加のPythonパッケージは不要です。
+Python 3.14.10の標準ライブラリで、会社・製品の接続検査もテストします。追加のPythonパッケージは不要です。
 公開パスで両サイトを確認する手順は[サイト間の接続確認](docs/site-integration.md)を参照してください。
 
 Astro は `output: "static"` を明示し、サーバーアダプターやフロントエンドフレームワークを使いません。
@@ -90,6 +98,6 @@ TerraformとCloudFrontのURL処理はinfraのCIで検証します。
 AWS基盤を変更するときはinfraリポジトリでplan/applyします。会社タグworkflowはTerraformを実行しません。
 製品紹介を追加するときはコンテンツテストとworkflowの公開URL確認も更新してください。
 
-## 共有デザイン
+## design-v1への移行
 
-会社サイト自身と製品・別リポジトリで使うCSS・会社ロゴは`packages/brand/`で管理します。配布タグは`design-v*`です。[共有デザインの更新・配布手順](docs/design-package.md)を参照してください。
+共有CSSの正本は`packages/brand/`、パッケージ名は`@the3/brand`です。旧プリセットの配色・共有クラスを維持します。[配布と利用の手順](docs/design-package.md)を参照してください。

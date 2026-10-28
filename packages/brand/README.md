@@ -4,25 +4,21 @@
 
 ## 読み込み
 
-`tokens.css` → `base.css` → 利用側のCSSの順に読み込みます。CSSのレイヤー順は`the3-tokens, the3-base`です。Tailwindを使う場合は、そのimportより先にこの順を宣言してから共有CSSをimportし、利用側の`@theme inline`で既存の色名を`--the3-*`へ接続します。
+`base.css`は`tokens.css`を相対importします。通常のHTMLでは`base.css`を自サイトから配信し、両CSSを同じディレクトリへ置きます。Tailwindでは`@import "@the3/brand/base.css" layer(base);`として利用し、既存のテーマ名を共有変数へ対応付けます。
 
 ```css
-@layer the3-tokens, theme, base, the3-base, components, utilities;
 @import "tailwindcss";
-@import "@the3/brand/tokens.css";
-@import "@the3/brand/base.css";
-@theme inline {
-  --color-paper: var(--the3-background);
-  --color-ink: var(--the3-text);
+@import "@the3/brand/base.css" layer(base);
+@theme {
+  --color-forest: var(--the3-accent);
+  --color-ink: var(--the3-ink);
   --font-sans: var(--the3-font-sans);
 }
 ```
 
-通常のHTMLでは、展開したファイルを自サイトから`link rel="stylesheet"`で配信します。`base.css`はbody、フォーム等のフォーカス、`.the3-skip-link`、動きを減らす設定に適用されます。本文スキップ先には`id="main"`を設けてください。
+`--the3-accent/on-accent/ink/paper/muted/line/surface`、`--the3-font-sans`、`--the3-space-sm/md/lg`、`--the3-radius`、`--the3-artwork-filter`と既存の`.the3-*`クラスは旧`@the3/brand-preset` v0.2.0から維持します。`--the3-brand/on-brand/text/background/border`は同じ値を意味名で参照する別名です。正確な名前は`tokens.css`を参照してください。既存のフォーム・ページ配置の共有クラスも互換性のため含めます。新しい画面機能は追加しません。
 
-`html`の`data-theme="light"`でライト、`data-theme="dark"`でダーク、属性を省略するとシステム設定に追従します。テーマ操作用JavaScriptは含みません。フォーム・表を含む全画面で確認するまで、製品側はライト固定にしてください。
-
-共有変数は`--the3-brand`、`--the3-on-brand`、`--the3-text`、`--the3-background`、`--the3-muted`、`--the3-border`、`--the3-surface`、`--the3-font-sans`、`--the3-line-height`、`--the3-space-sm/md/lg`、`--the3-radius`、`--the3-border-width`、`--the3-focus-color`、`--the3-focus-width/offset`、`--the3-artwork-filter`です。製品独自のアクセントや状態色は別の変数として定義します。既定値の上書きは利用側CSSで行いますが、フォーカスを消さないでください。
+`html`の`data-theme="light"`でライト、`data-theme="dark"`でダーク、属性を省略するとシステム設定に追従します。テーマ操作用JavaScriptは含みません。`.the3-skip-link`のリンク先に`id="main"`を設けてください。フォーカスと動きを減らす設定も共有します。製品の画面密度・業務状態色は製品側で管理します。
 
 ## 取得・更新
 
